@@ -109,6 +109,7 @@ void retro_set_environment(retro_environment_t cb)
 
 void init_core_options(void)
 {
+   // Discover available cores and log them
    const char *path = NULL;
    if (environ_cb(RETRO_ENVIRONMENT_GET_LIBRETRO_PATH, &path) && path)
    {
@@ -132,11 +133,29 @@ void init_core_options(void)
       }
    }
 
-    static const struct retro_variable vars[] = {
-        { "mycore_option1", "My Option 1; value1|value2|value3" },
-        { "mycore_option2", "My Option 2; enabled|disabled" },
-        { NULL, NULL }
-    };
+   static const struct retro_variable vars[] = {
+       { "libretro_hook_path_pattern_1", "Path Pattern 1; " },
+       { "libretro_hook_core_select_1", "Core Select 1; none|auto|manual" },
+       { "libretro_hook_path_pattern_2", "Path Pattern 2; " },
+       { "libretro_hook_core_select_2", "Core Select 2; none|auto|manual" },
+       { "libretro_hook_path_pattern_3", "Path Pattern 3; " },
+       { "libretro_hook_core_select_3", "Core Select 3; none|auto|manual" },
+       { "libretro_hook_path_pattern_4", "Path Pattern 4; " },
+       { "libretro_hook_core_select_4", "Core Select 4; none|auto|manual" },
+       { "libretro_hook_path_pattern_5", "Path Pattern 5; " },
+       { "libretro_hook_core_select_5", "Core Select 5; none|auto|manual" },
+       { "libretro_hook_path_pattern_6", "Path Pattern 6; " },
+       { "libretro_hook_core_select_6", "Core Select 6; none|auto|manual" },
+       { "libretro_hook_path_pattern_7", "Path Pattern 7; " },
+       { "libretro_hook_core_select_7", "Core Select 7; none|auto|manual" },
+       { "libretro_hook_path_pattern_8", "Path Pattern 8; " },
+       { "libretro_hook_core_select_8", "Core Select 8; none|auto|manual" },
+       { "libretro_hook_path_pattern_9", "Path Pattern 9; " },
+       { "libretro_hook_core_select_9", "Core Select 9; none|auto|manual" },
+       { "libretro_hook_path_pattern_10", "Path Pattern 10; " },
+       { "libretro_hook_core_select_10", "Core Select 10; none|auto|manual" },
+       { NULL, NULL }
+   };
    environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
 }
 
