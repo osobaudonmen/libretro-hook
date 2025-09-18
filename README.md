@@ -71,4 +71,4 @@ The `examples/` directory contains various sample implementations:
 
 ## License
 
-See `license` file for details.
+See `LICENSE` for details.
