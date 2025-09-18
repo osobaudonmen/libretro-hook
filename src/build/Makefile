@@ -30,6 +30,7 @@ ifeq ($(platform),)
 		platform = win
 	endif
 endif
+$(info [libretro-hook] platform=$(platform))
 
 # system platform
 system_platform = unix
