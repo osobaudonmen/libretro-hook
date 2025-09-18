@@ -533,6 +533,16 @@ PSS_STYLE :=2
 LDFLAGS += -DLL
 CFLAGS += -D_CRT_SECURE_NO_DEPRECATE
 
+# Windows Cross-compilation (64-bit)
+else ifeq ($(platform), wincross64)
+	TARGET := $(TARGET_NAME)_libretro.dll
+	CC = x86_64-w64-mingw32-gcc
+	CXX = x86_64-w64-mingw32-g++
+	AR = x86_64-w64-mingw32-ar
+	SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=link.T
+	PSS_STYLE := 2
+	PLATFORM_DEFINES += -DWIN32
+
 # Windows
 else
 	TARGET := $(TARGET_NAME)_libretro.dll
