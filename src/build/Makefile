@@ -61,7 +61,7 @@ LIBM := -lm
 endif
 LIBS :=
 
-CORE_DIR := .
+CORE_DIR := ../..
 
 # Unix
 ifeq ($(platform), unix)
@@ -71,13 +71,13 @@ ifneq ($(findstring SunOS,$(shell uname -a)),)
 	CC = gcc
 	SHARED := -shared -z defs
 else
-	SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl,-no-undefined
+	SHARED := -shared -Wl,--version-script=link.T -Wl,-no-undefined
 endif
 
 else ifeq ($(platform), linux-portable)
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC -nostdlib
-	SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T
+	SHARED := -shared -Wl,--version-script=link.T
 	LIBM :=
 # OS X
 else ifeq ($(platform), osx)
