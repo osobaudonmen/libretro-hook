@@ -1,6 +1,6 @@
 LOCAL_PATH := $(call my-dir)
 
-CORE_DIR := $(LOCAL_PATH)/..
+CORE_DIR := $(LOCAL_PATH)/../../..
 
 include $(LOCAL_PATH)/../Makefile.common
 
@@ -16,5 +16,5 @@ LOCAL_MODULE    := retro
 LOCAL_SRC_FILES := $(SOURCES_C) $(SOURCES_CXX)
 LOCAL_CFLAGS    := $(COREFLAGS)
 LOCAL_CXXFLAGS  := $(COREFLAGS)
-LOCAL_LDFLAGS   := -Wl,-version-script=$(CORE_DIR)/link.T
+LOCAL_LDFLAGS   := -Wl,-version-script=$(LOCAL_PATH)/../link.T
 include $(BUILD_SHARED_LIBRARY)

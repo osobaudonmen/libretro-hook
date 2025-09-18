@@ -332,6 +332,26 @@ else ifeq ($(platform), gcw0)
 	SHARED := -shared -Wl,--version-script=$(CORE_DIR)/link.T -Wl,-no-undefined
 	PLATFORM_DEFINES += -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float
 	EXTERNAL_ZLIB = 1
+
+# Android ARMv7
+else ifeq ($(platform), armeabi-v7a)
+	TARGET := $(TARGET_NAME)_libretro.so
+	JNI_DIR := jni
+	NDK_BUILD := $(shell which ndk-build 2>/dev/null || echo /opt/android-ndk-r27c/ndk-build)
+	NDK_CFLAGS := -O3 -march=armv7-a -mtune=cortex-a9 -mfpu=neon -mfloat-abi=softfp -flto -ffunction-sections -fdata-sections
+	NDK_LDFLAGS := -flto -Wl,--gc-sections -Wl,--strip-all -Wl,--as-needed -Wl,-O1
+	PLATFORM_DEFINES += -DANDROID
+	STATIC_LINKING=0
+
+# Android ARMv8 (64-bit)
+else ifeq ($(platform), arm64-v8a)
+	TARGET := $(TARGET_NAME)_libretro.so
+	JNI_DIR := jni
+	NDK_BUILD := $(shell which ndk-build 2>/dev/null || echo /opt/android-ndk-r27c/ndk-build)
+	NDK_CFLAGS := -O3 -march=armv8-a -flto -ffunction-sections -fdata-sections
+	NDK_LDFLAGS := -flto -Wl,--gc-sections -Wl,--strip-all -Wl,--as-needed -Wl,-O1
+	PLATFORM_DEFINES += -DANDROID
+	STATIC_LINKING=0
 	
 # Windows MSVC 2017 all architectures
 else ifneq (,$(findstring windows_msvc2017,$(platform)))
@@ -639,6 +659,16 @@ $(LIBRARY_NAME)_CFLAGS += $(COMMON_FLAGS) $(CFLAGS)
 $(LIBRARY_NAME)_CXXFLAGS += $(COMMON_FLAGS) $(CXXFLAGS)
 ${LIBRARY_NAME}_FILES = $(SOURCES_C)
 include $(THEOS_MAKE_PATH)/library.mk
+else ifeq ($(platform), armeabi-v7a)
+all: $(TARGET)
+$(TARGET):
+	cd $(JNI_DIR) && $(NDK_BUILD) NDK_DEBUG=0 APP_PLATFORM=android-21 APP_ABI=armeabi-v7a APP_CFLAGS="$(NDK_CFLAGS)" APP_CXXFLAGS="$(NDK_CFLAGS)" APP_LDFLAGS="$(NDK_LDFLAGS)"
+	cp libs/armeabi-v7a/libretro.so $(TARGET)
+else ifeq ($(platform), arm64-v8a)
+all: $(TARGET)
+$(TARGET):
+	cd $(JNI_DIR) && $(NDK_BUILD) NDK_DEBUG=0 APP_PLATFORM=android-28 APP_ABI=arm64-v8a APP_CFLAGS="$(NDK_CFLAGS)" APP_CXXFLAGS="$(NDK_CFLAGS)" APP_LDFLAGS="$(NDK_LDFLAGS)"
+	cp libs/arm64-v8a/libretro.so $(TARGET)
 else
 all: $(TARGET)
 $(TARGET): $(OBJECTS)
@@ -659,11 +689,25 @@ endif
 	$(CC) -c $(OBJOUT)$@ $< $(CFLAGS) $(INCFLAGS)
 
 clean-objs:
+ifeq ($(platform), armeabi-v7a)
+	cd $(JNI_DIR) && $(NDK_BUILD) clean
+else ifeq ($(platform), arm64-v8a)
+	cd $(JNI_DIR) && $(NDK_BUILD) clean
+else
 	rm -f $(OBJECTS)
+endif
 
 clean:
+ifeq ($(platform), armeabi-v7a)
+	cd $(JNI_DIR) && $(NDK_BUILD) clean
+	rm -f $(TARGET)
+else ifeq ($(platform), arm64-v8a)
+	cd $(JNI_DIR) && $(NDK_BUILD) clean
+	rm -f $(TARGET)
+else
 	rm -f $(OBJECTS)
 	rm -f $(TARGET)
+endif
 
 .PHONY: clean clean-objs
 endif
