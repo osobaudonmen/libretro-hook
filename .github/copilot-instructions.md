@@ -12,6 +12,7 @@
 
 ## 開発指針
 
+- libretroのAPIは`libretro.h`に定義されているので参照ください。
 - libretro-commonを積極的に使用してポータビリティを確保してください。
 
 ## ツール

@@ -177,6 +177,8 @@ void init_core_options(void)
       }
    }
 
+   // NOTE: We avoid Core Options V2 here since bundled libretro.h may not define it.
+
    // Create core option variables with discovered cores
    static struct retro_variable vars[21]; // 10 pairs + 1 NULL terminator
    
@@ -184,12 +186,14 @@ void init_core_options(void)
    for (int i = 0; i < 10; i++) {
        static char pattern_keys[10][64];
        static char core_keys[10][64];
-       static char pattern_desc[10][128];
-       static char core_desc[10][8192];
+   static char pattern_desc[10][128];
+   static char core_desc[10][8192];
        
        snprintf(pattern_keys[i], sizeof(pattern_keys[i]), "libretro_hook_path_pattern_%d", i + 1);
        snprintf(core_keys[i], sizeof(core_keys[i]), "libretro_hook_core_select_%d", i + 1);
-       snprintf(pattern_desc[i], sizeof(pattern_desc[i]), "Path Pattern %d; ", i + 1);
+   // For legacy variables API, to enable free-text input, provide a single empty value after ';'
+   // RetroArch interprets "Key; " as a string input field.
+   snprintf(pattern_desc[i], sizeof(pattern_desc[i]), "Path Pattern %d; ", i + 1);
        snprintf(core_desc[i], sizeof(core_desc[i]), "Core Select %d; %s", i + 1, available_cores_list);
        
        vars[i * 2].key = pattern_keys[i];
