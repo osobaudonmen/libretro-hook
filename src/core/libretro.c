@@ -20,6 +20,7 @@
 static uint8_t *frame_buf;
 static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
+static char available_cores_list[8192] = "none";
 char retro_base_directory[4096];
 char retro_game_path[4096];
 char retro_core_path[4096];
@@ -109,7 +110,10 @@ void retro_set_environment(retro_environment_t cb)
 
 void init_core_options(void)
 {
-   // Discover available cores and log them
+   // Reset and build available cores list
+   strcpy(available_cores_list, "none");
+   
+   // Discover available cores and build selection list
    const char *path = NULL;
    if (environ_cb(RETRO_ENVIRONMENT_GET_LIBRETRO_PATH, &path) && path)
    {
@@ -126,6 +130,11 @@ void init_core_options(void)
                     const char *ext = path_get_extension(name);
                     if (strcmp(ext, "so") == 0 || strcmp(ext, "dll") == 0 || strcmp(ext, "dylib") == 0) {
                         log_cb(RETRO_LOG_INFO, "Found core: %s\n", name);
+                        // Add to available cores list
+                        if (strlen(available_cores_list) + strlen(name) + 2 < sizeof(available_cores_list)) {
+                            strcat(available_cores_list, "|");
+                            strcat(available_cores_list, name);
+                        }
                     }
                 }
             }
@@ -133,29 +142,31 @@ void init_core_options(void)
       }
    }
 
-   static const struct retro_variable vars[] = {
-       { "libretro_hook_path_pattern_1", "Path Pattern 1; " },
-       { "libretro_hook_core_select_1", "Core Select 1; none|auto|manual" },
-       { "libretro_hook_path_pattern_2", "Path Pattern 2; " },
-       { "libretro_hook_core_select_2", "Core Select 2; none|auto|manual" },
-       { "libretro_hook_path_pattern_3", "Path Pattern 3; " },
-       { "libretro_hook_core_select_3", "Core Select 3; none|auto|manual" },
-       { "libretro_hook_path_pattern_4", "Path Pattern 4; " },
-       { "libretro_hook_core_select_4", "Core Select 4; none|auto|manual" },
-       { "libretro_hook_path_pattern_5", "Path Pattern 5; " },
-       { "libretro_hook_core_select_5", "Core Select 5; none|auto|manual" },
-       { "libretro_hook_path_pattern_6", "Path Pattern 6; " },
-       { "libretro_hook_core_select_6", "Core Select 6; none|auto|manual" },
-       { "libretro_hook_path_pattern_7", "Path Pattern 7; " },
-       { "libretro_hook_core_select_7", "Core Select 7; none|auto|manual" },
-       { "libretro_hook_path_pattern_8", "Path Pattern 8; " },
-       { "libretro_hook_core_select_8", "Core Select 8; none|auto|manual" },
-       { "libretro_hook_path_pattern_9", "Path Pattern 9; " },
-       { "libretro_hook_core_select_9", "Core Select 9; none|auto|manual" },
-       { "libretro_hook_path_pattern_10", "Path Pattern 10; " },
-       { "libretro_hook_core_select_10", "Core Select 10; none|auto|manual" },
-       { NULL, NULL }
-   };
+   // Create core option variables with discovered cores
+   static struct retro_variable vars[21]; // 10 pairs + 1 NULL terminator
+   
+   // Build the variables dynamically
+   for (int i = 0; i < 10; i++) {
+       static char pattern_keys[10][64];
+       static char core_keys[10][64];
+       static char pattern_desc[10][128];
+       static char core_desc[10][8192];
+       
+       snprintf(pattern_keys[i], sizeof(pattern_keys[i]), "libretro_hook_path_pattern_%d", i + 1);
+       snprintf(core_keys[i], sizeof(core_keys[i]), "libretro_hook_core_select_%d", i + 1);
+       snprintf(pattern_desc[i], sizeof(pattern_desc[i]), "Path Pattern %d; ", i + 1);
+       snprintf(core_desc[i], sizeof(core_desc[i]), "Core Select %d; %s", i + 1, available_cores_list);
+       
+       vars[i * 2].key = pattern_keys[i];
+       vars[i * 2].value = pattern_desc[i];
+       vars[i * 2 + 1].key = core_keys[i];
+       vars[i * 2 + 1].value = core_desc[i];
+   }
+   
+   // NULL terminator
+   vars[20].key = NULL;
+   vars[20].value = NULL;
+   
    environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
 }
 
