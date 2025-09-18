@@ -12,6 +12,8 @@
 
 #include <retro_dirent.h>
 #include <file/file_path.h>
+#include <streams/file_stream.h>
+#include <compat/strl.h>
 
 #define VIDEO_WIDTH 256
 #define VIDEO_HEIGHT 192
@@ -21,11 +23,13 @@ static uint8_t *frame_buf;
 static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
 static char available_cores_list[8192] = "none";
+static char available_patterns_list[1024] = "";
 char retro_base_directory[4096];
 char retro_game_path[4096];
 char retro_core_path[4096];
 
 void init_core_options(void);
+static void load_path_patterns(void);
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
@@ -83,6 +87,7 @@ void retro_init(void)
       snprintf(retro_base_directory, sizeof(retro_base_directory), "SYSMTE_DIRECTORY: %s", dir);
    }
 
+   load_path_patterns();
    init_core_options();
 }
 
@@ -147,6 +152,9 @@ void init_core_options(void)
 {
    // Reset and build available cores list
    strcpy(available_cores_list, "none");
+   // Ensure patterns list has defaults if empty
+   if (available_patterns_list[0] == '\0')
+      strcpy(available_patterns_list, "/mame/|/fbneo/|/arcade/");
    
    // Discover available cores and build selection list
    const char *path = NULL;
@@ -177,7 +185,6 @@ void init_core_options(void)
       }
    }
 
-   // NOTE: We avoid Core Options V2 here since bundled libretro.h may not define it.
 
    // Create core option variables with discovered cores
    static struct retro_variable vars[21]; // 10 pairs + 1 NULL terminator
@@ -189,12 +196,10 @@ void init_core_options(void)
    static char pattern_desc[10][128];
    static char core_desc[10][8192];
        
-       snprintf(pattern_keys[i], sizeof(pattern_keys[i]), "libretro_hook_path_pattern_%d", i + 1);
-       snprintf(core_keys[i], sizeof(core_keys[i]), "libretro_hook_core_select_%d", i + 1);
-   // For legacy variables API, to enable free-text input, provide a single empty value after ';'
-   // RetroArch interprets "Key; " as a string input field.
-   snprintf(pattern_desc[i], sizeof(pattern_desc[i]), "Path Pattern %d; ", i + 1);
-       snprintf(core_desc[i], sizeof(core_desc[i]), "Core Select %d; %s", i + 1, available_cores_list);
+      snprintf(pattern_keys[i], sizeof(pattern_keys[i]), "libretro_hook_path_pattern_%d", i + 1);
+      snprintf(core_keys[i], sizeof(core_keys[i]), "libretro_hook_core_select_%d", i + 1);
+      snprintf(pattern_desc[i], sizeof(pattern_desc[i]), "Path Pattern %d; %s", i + 1, available_patterns_list);
+      snprintf(core_desc[i], sizeof(core_desc[i]), "Core Select %d; %s", i + 1, available_cores_list);
        
        vars[i * 2].key = pattern_keys[i];
        vars[i * 2].value = pattern_desc[i];
@@ -207,6 +212,58 @@ void init_core_options(void)
    vars[20].value = NULL;
    
    environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
+}
+
+static void append_choice(char *dst, size_t dst_size, const char *choice)
+{
+   if (!choice || !*choice) return;
+   if (dst[0] == '\0') {
+      strlcpy(dst, choice, dst_size);
+   } else {
+      size_t need = strlen(dst) + 1 + strlen(choice) + 1;
+      if (need <= dst_size) {
+         strcat(dst, "|");
+         strcat(dst, choice);
+      }
+   }
+}
+
+static void load_path_patterns(void)
+{
+   available_patterns_list[0] = '\0';
+   const char *sysdir = NULL;
+   if (!(environ_cb && environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &sysdir) && sysdir && *sysdir)) {
+      strcpy(available_patterns_list, "/mame/|/fbneo/|/arcade/");
+      return;
+   }
+
+   char patterns_path[4096];
+   snprintf(patterns_path, sizeof(patterns_path), "%s%shook%spath_patterns.txt", sysdir, PATH_DEFAULT_SLASH(), PATH_DEFAULT_SLASH());
+
+   RFILE *f = filestream_open(patterns_path, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
+   if (!f) {
+      strcpy(available_patterns_list, "/mame/|/fbneo/|/arcade/");
+      return;
+   }
+   log_cb(RETRO_LOG_INFO, "Loading path patterns from: %s\n", patterns_path);
+
+   char line[512];
+   while (filestream_gets(f, line, sizeof(line))) {
+      // trim whitespace and newlines
+      size_t len = strlen(line);
+      while (len && (line[len-1] == '\n' || line[len-1] == '\r' || line[len-1] == ' ' || line[len-1] == '\t')) {
+         line[--len] = '\0';
+      }
+      char *start = line;
+      while (*start == ' ' || *start == '\t') start++;
+      if (*start == '\0' || *start == '#')
+         continue;
+      append_choice(available_patterns_list, sizeof(available_patterns_list), start);
+   }
+   filestream_close(f);
+
+   if (available_patterns_list[0] == '\0')
+      strcpy(available_patterns_list, "/mame/|/fbneo/|/arcade/");
 }
 
 void retro_set_audio_sample(retro_audio_sample_t cb)

@@ -59,6 +59,19 @@ This will create `sample_libretro.so` in the build directory.
 - Comprehensive build system supporting multiple platforms
 - Example implementations for various libretro features
 
+## Configuration
+
+- Path pattern options for core selection are provided as choices.
+- Choices are loaded from a UTF-8 text file named `path_patterns.txt`.
+- Each line defines one choice. Leading/trailing spaces are trimmed. `#` starts a comment line.
+- Default choices when file is missing/empty: `/mame/`, `/fbneo/`, `/arcade/`.
+
+### Location of `path_patterns.txt`
+
+- RetroArch System Directory under `hook/`:
+    - `<system>/hook/path_patterns.txt`
+    - RetroArch: Settings > Directory > System で `system` を確認
+
 ## Examples
 
 The `examples/` directory contains various sample implementations:
