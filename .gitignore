@@ -5,3 +5,14 @@
 *.exe
 *.so
 *.bc
+
+# Android NDK build artifacts
+obj/
+libs/
+src/build/obj/
+src/build/libs/
+*.o.d
+
+# Android specific files
+local.properties
+.cxx/
