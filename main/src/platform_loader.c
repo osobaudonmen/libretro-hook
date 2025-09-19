@@ -114,20 +114,19 @@ void platform_run_script(const char *script_path, const char *core_path, const c
 void platform_load_core(const char *core_path, const char *rom_path) {
     char command[MAX_COMMAND_SIZE];
 
-    __android_log_print(ANDROID_LOG_INFO, "CoreLoader", "Loading core: %s with ROM: %s", core_path, rom_path);
+    log_cb(RETRO_LOG_INFO, "CoreLoader: Loading core: %s with ROM: %s\n", core_path, rom_path);
 
     int ret = snprintf(command, sizeof(command),
         "am start -n com.retroarch/.browser.retroarch.RetroArchActivity -e ROM \"%s\" -e LIBRETRO \"%s\"",
         rom_path, core_path);
     if (ret >= sizeof(command)) {
-        __android_log_print(ANDROID_LOG_ERROR, "CoreLoader", "Command line too long");
+        log_cb(RETRO_LOG_INFO, "CoreLoader: Command line too long\n");
         return;
     }
 
     int result = system(command);
     if (result != 0) {
-        __android_log_print(ANDROID_LOG_ERROR, "CoreLoader",
-            "Failed to launch RetroArch: return code %d, command: %s", result, command);
+        log_cb(RETRO_LOG_INFO, "CoreLoader: Failed to launch RetroArch: return code %d, command: %s\n", result, command);
     } else {
         cleanup_and_exit();
     }
@@ -139,7 +138,7 @@ void platform_run_script(const char *script_path, const char *core_path, const c
         snprintf(command, sizeof(command), "%s '%s' '%s'", script_path, core_path, rom_path);
         int result = system(command);
         if (result != 0) {
-            __android_log_print(ANDROID_LOG_ERROR, "CoreLoader", "Script execution failed: %d", result);
+            log_cb(RETRO_LOG_INFO, "CoreLoader: Script execution failed: %d, command: %s\n", result, command);
         }
     }
 }
