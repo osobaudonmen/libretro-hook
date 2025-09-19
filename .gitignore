@@ -41,6 +41,7 @@ coverage/
 
 # Editor / tooling
 .vscode/
+!.vscode/settings.json
 *.code-workspace
 
 # Archive outputs
