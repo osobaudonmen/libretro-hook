@@ -8,7 +8,7 @@
 ## プロジェクトの概要
 
 - libretro-hookは、libretroコアの実装であり、他のlibretroコアをロードして実行するためのローダー機能を提供します。
-- Windows、Linux、Androidに向けたビルドをサポートしています。
+- Windows(wincross64)、Linux(unix)、Android(arm64-v8a、armeabi-v7a)に向けたビルドをサポートしています。
 
 ## 開発指針
 
