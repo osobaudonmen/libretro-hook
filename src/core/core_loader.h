@@ -1,1 +1,3 @@
 void load_core(const char *core_path, const char *rom_path);
+void call_script_before_load(const char *core_file, const char *core_path, const char *rom_path);
+const char* get_system_directory(void);

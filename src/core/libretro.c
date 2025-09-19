@@ -413,3 +413,16 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
    (void)code;
 }
 
+const char* get_system_directory(void)
+{
+   static char system_dir[4096] = "";
+   const char *dir = NULL;
+
+   if (environ_cb && environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir) {
+      strlcpy(system_dir, dir, sizeof(system_dir));
+      return system_dir;
+   }
+
+   return NULL;
+}
+
