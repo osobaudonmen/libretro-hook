@@ -46,6 +46,10 @@ SOURCES_C     := \
 	$(CORE_DIR)/src/external/libretro-common/vfs/vfs_implementation.c \
 	$(CORE_DIR)/src/core/libretro.c \
 	$(CORE_DIR)/src/core/core_loader.c \
+	$(CORE_DIR)/src/core/core_discovery.c \
+	$(CORE_DIR)/src/core/core_options.c \
+	$(CORE_DIR)/src/core/platform_loader.c \
+	$(CORE_DIR)/src/core/platform_utils.c \
 	$(CORE_DIR)/src/core/settings.c
 
 # Add C++ sourcecode files to this
