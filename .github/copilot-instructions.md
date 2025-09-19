@@ -30,3 +30,7 @@
 - Android ARMv7アーキテクチャ用のビルドは`src/build/`ディレクトリで`make platform=armeabi-v7a`を実行してください。
 - Android ARMv8アーキテクチャ用のビルドは`src/build/`ディレクトリで`make platform=arm64-v8a`を実行してください。
 
+## 問題調査手順
+
+- ビルドに失敗した場合は、`make clean`を実行してから再度ビルドを試みてください。
+
