@@ -257,5 +257,20 @@ endif
 .PHONY: clean clean-objs
 endif
 
+# Platform aliases for easier building
+windows64:
+	$(MAKE) platform=wincross64
+
+linux:
+	$(MAKE) platform=unix
+
+android64:
+	$(MAKE) platform=arm64-v8a
+
+android32:
+	$(MAKE) platform=armeabi-v7a
+
+.PHONY: clean clean-objs windows64 linux android64 android32
+
 print-%:
 	@echo '$*=$($*)'
