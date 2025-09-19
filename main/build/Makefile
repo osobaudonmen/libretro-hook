@@ -234,8 +234,6 @@ endif
 	$(CC) -c $(OBJOUT)$@ $< $(CFLAGS) $(INCFLAGS)
 endif
 
-endif
-
 clean:
 ifeq ($(platform), armeabi-v7a)
 	cd $(JNI_DIR) && $(NDK_BUILD) clean
@@ -273,7 +271,7 @@ android64:
 android32:
 	$(MAKE) platform=armeabi-v7a
 
-.PHONY: clean clean-objs windows64 linux android64 android32
+.PHONY: clean clean-objs windows64 linux android64 android32 $(TARGET)
 
 print-%:
 	@echo '$*=$($*)'
