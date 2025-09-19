@@ -15,13 +15,13 @@ mkdir -p "$CORE_DIR"
 
 # Build for each platform
 echo "Building for Linux..."
-cd "$BUILD_DIR" && make clean && make linux
+cd "$BUILD_DIR" && make clean platform=unix && make linux
 echo "Building for Windows..."
-cd "$BUILD_DIR" && make clean && make windows64
+cd "$BUILD_DIR" && make clean platform=wincross64 && make windows64
 echo "Building for Android ARMv7..."
-cd "$BUILD_DIR" && make clean && make android32
+cd "$BUILD_DIR" && make clean platform=armeabi-v7a && make android32
 echo "Building for Android ARMv8..."
-cd "$BUILD_DIR" && make clean && make android64
+cd "$BUILD_DIR" && make clean platform=arm64-v8a && make android64
 
 # Copy built artifacts
 # Unix
