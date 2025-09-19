@@ -9,8 +9,8 @@
 # Android NDK build artifacts
 obj/
 libs/
-src/build/obj/
-src/build/libs/
+main/build/obj/
+main/build/libs/
 *.o.d
 
 # Android specific files
@@ -18,8 +18,8 @@ local.properties
 .cxx/
 
 # libretro build outputs
-src/build/hook_libretro.so
-src/build/hook_libretro.dll
+main/generated/*/hook_libretro.so
+main/generated/*/hook_libretro.dll
 
 # Distribution generated packages
 dist/release/
