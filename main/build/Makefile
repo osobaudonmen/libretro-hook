@@ -232,6 +232,24 @@ endif
 
 %.o: %.c
 	$(CC) -c $(OBJOUT)$@ $< $(CFLAGS) $(INCFLAGS)
+endif
+
+endif
+
+clean:
+ifeq ($(platform), armeabi-v7a)
+	cd $(JNI_DIR) && $(NDK_BUILD) clean
+	rm -f ../generated/armeabi-v7a/$(TARGET)
+	rm -f libs/armeabi-v7a/libhook.so
+else ifeq ($(platform), arm64-v8a)
+	cd $(JNI_DIR) && $(NDK_BUILD) clean
+	rm -f ../generated/arm64-v8a/$(TARGET)
+	rm -f libs/arm64-v8a/libhook.so
+else
+	rm -f $(OBJECTS)
+	rm -f $(TARGET)
+	rm -f ../generated/$(platform)/$(TARGET)
+endif
 
 clean-objs:
 ifeq ($(platform), armeabi-v7a)
@@ -240,21 +258,6 @@ else ifeq ($(platform), arm64-v8a)
 	cd $(JNI_DIR) && $(NDK_BUILD) clean
 else
 	rm -f $(OBJECTS)
-endif
-
-clean:
-ifeq ($(platform), armeabi-v7a)
-	cd $(JNI_DIR) && $(NDK_BUILD) clean
-	rm -f $(TARGET)
-else ifeq ($(platform), arm64-v8a)
-	cd $(JNI_DIR) && $(NDK_BUILD) clean
-	rm -f $(TARGET)
-else
-	rm -f $(OBJECTS)
-	rm -f $(TARGET)
-endif
-
-.PHONY: clean clean-objs
 endif
 
 # Platform aliases for easier building
