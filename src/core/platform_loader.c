@@ -35,10 +35,10 @@ void platform_load_core(const char *core_path, const char *rom_path) {
     if (pid == 0) {
         // まず標準的なインストール場所を試す
         execl("/usr/bin/retroarch", "retroarch", "-L", core_path, rom_path, (char *)NULL);
-        
+
         // 見つからない場合はPATHから検索
         execlp("retroarch", "retroarch", "-L", core_path, rom_path, (char *)NULL);
-        
+
         // それでも見つからない場合
         _exit(127);
     } else if (pid > 0) {

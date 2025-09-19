@@ -1,0 +1,62 @@
+#!/bin/sh
+
+# Autoload Mahjong Overlays for MAME and FinalBurn Neo cores in RetroArch
+
+# Check arguments
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <core_path> <rom_path>"
+    exit 1
+fi
+
+CORE_PATH="$1"
+ROM_PATH="$2"
+
+# Extract core name from core path
+CORE_BASENAME=$(basename "$CORE_PATH")
+CORE_NAME="${CORE_BASENAME%_libretro*}"
+
+# Determine system name based on core name
+case "$CORE_NAME" in
+    "fbneo"|"fbneo2012")
+        SYSTEM_NAME="FinalBurn Neo"
+        ;;
+    "mame"|"mame2003"|"mame2010")
+        SYSTEM_NAME="MAME"
+        ;;
+    *)
+        # Default system name based on core name
+        SYSTEM_NAME="$CORE_NAME"
+        ;;
+esac
+
+# Extract game name from ROM path (remove extension and path)
+ROM_BASENAME=$(basename "$ROM_PATH")
+GAME_NAME="${ROM_BASENAME%.*}"
+
+# Determine RetroArch config directory
+if [ -n "$XDG_CONFIG_HOME" ]; then
+    RETROARCH_CONFIG_DIR="$XDG_CONFIG_HOME/retroarch"
+else
+    RETROARCH_CONFIG_DIR="$HOME/.config/retroarch"
+fi
+
+# Create config directory if it doesn't exist
+mkdir -p "$RETROARCH_CONFIG_DIR/config/$SYSTEM_NAME"
+
+# Determine overlay path based on game name
+# Use game name directly as overlay name
+OVERLAY_NAME="$GAME_NAME"
+
+# Create game-specific config file
+CONFIG_FILE="$RETROARCH_CONFIG_DIR/config/$SYSTEM_NAME/${GAME_NAME}.cfg"
+OVERLAY_PATH="$RETROARCH_CONFIG_DIR/overlays/mahjong/mahjong_${OVERLAY_NAME}.cfg"
+
+cat > "$CONFIG_FILE" << EOF
+# Auto-generated overlay configuration for $GAME_NAME
+input_overlay = "$OVERLAY_PATH"
+input_overlay_enable = "true"
+EOF
+
+echo "Created overlay configuration: $CONFIG_FILE"
+echo "System: $SYSTEM_NAME"
+echo "Overlay path: $OVERLAY_PATH"
