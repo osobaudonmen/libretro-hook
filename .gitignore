@@ -16,3 +16,35 @@ src/build/libs/
 # Android specific files
 local.properties
 .cxx/
+
+# libretro build outputs
+src/build/hook_libretro.so
+src/build/hook_libretro.dll
+
+# Distribution generated packages
+dist/release/
+
+# Temporary / logs
+*.log
+*.tmp
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Coverage / analysis
+coverage/
+*.gcno
+*.gcda
+
+# Editor / tooling
+.vscode/
+*.code-workspace
+
+# Archive outputs
+*.zip
+*.tar
+*.tar.gz
+*.7z
