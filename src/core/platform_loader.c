@@ -1,6 +1,9 @@
 #include "platform_loader.h"
 #include "hook_constants.h"
 #include <stdio.h>
+#include <stdint.h>
+
+extern uint8_t *frame_buf;
 
 #ifdef __unix__
 #include <unistd.h>
@@ -21,12 +24,28 @@
 void platform_load_core(const char *core_path, const char *rom_path)
 {
 #ifdef __unix__
-    execl(
-        "/usr/bin/retroarch", "retroarch",
-        "-L", core_path,
-        rom_path,
-        (char *)NULL
-    );
+    pid_t pid = fork();
+    if (pid == 0) {
+        /* Child process: launch RetroArch */
+        execl(
+            "/usr/bin/retroarch", "retroarch",
+            "-L", core_path,
+            rom_path,
+            (char *)NULL
+        );
+        /* If execl fails */
+        _exit(127);
+    } else if (pid > 0) {
+        /* Parent process: perform cleanup and exit */
+        if (frame_buf) {
+            free(frame_buf);
+            frame_buf = NULL;
+        }
+        exit(0);
+    } else {
+        /* Fork failed */
+        /* Handle error if needed */
+    }
 #elif defined(_WIN32)
     char command[2048];
     STARTUPINFOA si;
@@ -63,6 +82,13 @@ void platform_load_core(const char *core_path, const char *rom_path)
         /* Close process and thread handles */
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
+        /* Perform cleanup before exit */
+        if (frame_buf) {
+            free(frame_buf);
+            frame_buf = NULL;
+        }
+        /* Exit this core after launching RetroArch */
+        exit(0);
     } else {
         /* Handle error */
         DWORD error = GetLastError();
@@ -97,6 +123,14 @@ void platform_load_core(const char *core_path, const char *rom_path)
     if (result != 0) {
         __android_log_print(ANDROID_LOG_ERROR, "CoreLoader",
             "Failed to launch RetroArch: return code %d, command: %s", result, command);
+    } else {
+        /* Perform cleanup before exit */
+        if (frame_buf) {
+            free(frame_buf);
+            frame_buf = NULL;
+        }
+        /* Exit this core after launching RetroArch */
+        exit(0);
     }
 #else
     /* Unsupported platform */
