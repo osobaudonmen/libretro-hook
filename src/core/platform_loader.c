@@ -21,6 +21,14 @@ extern uint8_t *frame_buf;
 #include <android/log.h>
 #endif
 
+static void cleanup_and_exit(void) {
+    if (frame_buf) {
+        free(frame_buf);
+        frame_buf = NULL;
+    }
+    exit(0);
+}
+
 void platform_load_core(const char *core_path, const char *rom_path)
 {
 #ifdef __unix__
@@ -37,11 +45,7 @@ void platform_load_core(const char *core_path, const char *rom_path)
         _exit(127);
     } else if (pid > 0) {
         /* Parent process: perform cleanup and exit */
-        if (frame_buf) {
-            free(frame_buf);
-            frame_buf = NULL;
-        }
-        exit(0);
+        cleanup_and_exit();
     } else {
         /* Fork failed */
         /* Handle error if needed */
@@ -83,12 +87,7 @@ void platform_load_core(const char *core_path, const char *rom_path)
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
         /* Perform cleanup before exit */
-        if (frame_buf) {
-            free(frame_buf);
-            frame_buf = NULL;
-        }
-        /* Exit this core after launching RetroArch */
-        exit(0);
+        cleanup_and_exit();
     } else {
         /* Handle error */
         DWORD error = GetLastError();
@@ -125,12 +124,7 @@ void platform_load_core(const char *core_path, const char *rom_path)
             "Failed to launch RetroArch: return code %d, command: %s", result, command);
     } else {
         /* Perform cleanup before exit */
-        if (frame_buf) {
-            free(frame_buf);
-            frame_buf = NULL;
-        }
-        /* Exit this core after launching RetroArch */
-        exit(0);
+        cleanup_and_exit();
     }
 #else
     /* Unsupported platform */
