@@ -18,7 +18,7 @@
 #include <compat/strl.h>
 #include <retro_assert.h>
 
-static uint8_t *frame_buf;
+uint8_t *frame_buf;
 static struct retro_log_callback logging;
 retro_log_printf_t log_cb;
 retro_environment_t environ_cb;

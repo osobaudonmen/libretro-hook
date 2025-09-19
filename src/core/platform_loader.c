@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-extern uint8_t *frame_buf;
-
 #ifdef __unix__
 #include <unistd.h>
 #include <sys/types.h>
