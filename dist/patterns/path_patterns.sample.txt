@@ -1,0 +1,6 @@
+# path_patterns.sample.txt
+# RetroArch system/hook/path_patterns.txt に配置する実例。
+# 先頭が#の行と空行は無視されます。
+/mame/
+/fbneo/
+/arcade/
