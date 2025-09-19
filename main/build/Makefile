@@ -671,12 +671,14 @@ else ifeq ($(platform), armeabi-v7a)
 all: $(TARGET)
 $(TARGET):
 	cd $(JNI_DIR) && $(NDK_BUILD) NDK_DEBUG=0 APP_PLATFORM=android-21 APP_ABI=armeabi-v7a APP_CFLAGS="$(NDK_CFLAGS)" APP_CXXFLAGS="$(NDK_CFLAGS)" APP_LDFLAGS="$(NDK_LDFLAGS)"
-	cp libs/armeabi-v7a/libhook.so $(TARGET)
+	mkdir -p ../generated/armeabi-v7a
+	cp libs/armeabi-v7a/libhook.so ../generated/armeabi-v7a/$(TARGET)
 else ifeq ($(platform), arm64-v8a)
 all: $(TARGET)
 $(TARGET):
 	cd $(JNI_DIR) && $(NDK_BUILD) NDK_DEBUG=0 APP_PLATFORM=android-28 APP_ABI=arm64-v8a APP_CFLAGS="$(NDK_CFLAGS)" APP_CXXFLAGS="$(NDK_CFLAGS)" APP_LDFLAGS="$(NDK_LDFLAGS)"
-	cp libs/arm64-v8a/libhook.so $(TARGET)
+	mkdir -p ../generated/arm64-v8a
+	cp libs/arm64-v8a/libhook.so ../generated/arm64-v8a/$(TARGET)
 else
 all: $(TARGET)
 $(TARGET): $(OBJECTS)
@@ -689,6 +691,8 @@ endif
 else
 	$(LD) $(LINKOUT)$@ $(SHARED) $(OBJECTS) $(LDFLAGS) $(LIBS)
 endif
+	mkdir -p ../generated/$(platform)
+	cp $(TARGET) ../generated/$(platform)/
 
 %.o: %.cpp
 	$(CXX) -c $(OBJOUT)$@ $< $(CXXFLAGS) $(INCFLAGS)
