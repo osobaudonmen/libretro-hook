@@ -47,8 +47,8 @@ else ifneq ($(findstring MINGW,$(shell uname -a)),)
 	system_platform = win
 endif
 
-# Replace 'sample' with the name of the core
-TARGET_NAME := sample
+# Core base name
+TARGET_NAME := hook
 GIT_VERSION := " $(shell git rev-parse --short HEAD || echo unknown)"
 ifneq ($(GIT_VERSION)," unknown")
 	CFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
@@ -563,6 +563,13 @@ else ifeq ($(platform), wincross64)
 	SHARED := -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=link.T
 	PSS_STYLE := 2
 	PLATFORM_DEFINES += -DWIN32
+	# Disable glibc-specific fortified symbols which MinGW headers might reference when
+	# code was compiled with _FORTIFY_SOURCE on Linux; ensure we don't emit __*_chk calls.
+	CFLAGS += -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0
+	CXXFLAGS += -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0
+	# Some functions like __ctype_*_loc are not available; use legacy ctype by defining this.
+	CFLAGS += -D__USE_MINGW_ANSI_STDIO=1
+	CXXFLAGS += -D__USE_MINGW_ANSI_STDIO=1
 
 # Windows
 else
@@ -664,12 +671,12 @@ else ifeq ($(platform), armeabi-v7a)
 all: $(TARGET)
 $(TARGET):
 	cd $(JNI_DIR) && $(NDK_BUILD) NDK_DEBUG=0 APP_PLATFORM=android-21 APP_ABI=armeabi-v7a APP_CFLAGS="$(NDK_CFLAGS)" APP_CXXFLAGS="$(NDK_CFLAGS)" APP_LDFLAGS="$(NDK_LDFLAGS)"
-	cp libs/armeabi-v7a/libretro.so $(TARGET)
+	cp libs/armeabi-v7a/libhook.so $(TARGET)
 else ifeq ($(platform), arm64-v8a)
 all: $(TARGET)
 $(TARGET):
 	cd $(JNI_DIR) && $(NDK_BUILD) NDK_DEBUG=0 APP_PLATFORM=android-28 APP_ABI=arm64-v8a APP_CFLAGS="$(NDK_CFLAGS)" APP_CXXFLAGS="$(NDK_CFLAGS)" APP_LDFLAGS="$(NDK_LDFLAGS)"
-	cp libs/arm64-v8a/libretro.so $(TARGET)
+	cp libs/arm64-v8a/libhook.so $(TARGET)
 else
 all: $(TARGET)
 $(TARGET): $(OBJECTS)

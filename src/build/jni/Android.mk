@@ -12,7 +12,7 @@ ifneq ($(GIT_VERSION)," unknown")
 endif
 
 include $(CLEAR_VARS)
-LOCAL_MODULE    := retro
+LOCAL_MODULE    := hook
 LOCAL_SRC_FILES := $(SOURCES_C) $(SOURCES_CXX)
 LOCAL_CFLAGS    := $(COREFLAGS)
 LOCAL_CXXFLAGS  := $(COREFLAGS)
