@@ -30,6 +30,7 @@ static void cleanup_and_exit(void) {
 }
 
 #ifdef __unix__
+#ifndef __ANDROID__
 void platform_load_core(const char *core_path, const char *rom_path) {
     pid_t pid = fork();
     if (pid == 0) {
@@ -58,6 +59,7 @@ void platform_run_script(const char *script_path, const char *core_path, const c
         }
     }
 }
+#endif
 #endif
 
 #ifdef _WIN32
