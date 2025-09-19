@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_DIR="$ROOT_DIR/main/build"
 DIST_DIR="$ROOT_DIR/dist"
 REL_DIR="$DIST_DIR/release"
-CORE_DIR="$REL_DIR/core"
+CORE_DIR="$REL_DIR/cores"
 INFO_DIR="$DIST_DIR/info"
 SYSTEM_HOOK_DIR="$DIST_DIR/system/hook"
 

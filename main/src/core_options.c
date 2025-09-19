@@ -26,8 +26,8 @@ void init_core_options(void)
    for (int i = 0; i < MAX_CORE_OPTIONS; i++) {
        static char pattern_keys[MAX_CORE_OPTIONS][64];
        static char core_keys[MAX_CORE_OPTIONS][64];
-       static char pattern_desc[MAX_CORE_OPTIONS][128];
-       static char core_desc[MAX_CORE_OPTIONS][MAX_CORES_LIST_SIZE];
+       static char pattern_desc[MAX_CORE_OPTIONS][2048];
+       static char core_desc[MAX_CORE_OPTIONS][MAX_CORES_LIST_SIZE + 16];
 
        snprintf(pattern_keys[i], sizeof(pattern_keys[i]), "libretro_hook_path_pattern_%d", i + 1);
        snprintf(core_keys[i], sizeof(core_keys[i]), "libretro_hook_core_select_%d", i + 1);
