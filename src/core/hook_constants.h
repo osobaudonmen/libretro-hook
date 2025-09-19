@@ -1,8 +1,6 @@
 #ifndef HOOK_CONSTANTS_H
 #define HOOK_CONSTANTS_H
 
-#include <stdint.h>
-
 /* Video constants */
 #define VIDEO_WIDTH 256
 #define VIDEO_HEIGHT 192
@@ -21,8 +19,5 @@
 
 /* Default path patterns */
 #define DEFAULT_PATH_PATTERNS "/mame/|/fbneo/|/arcade/"
-
-/* Global variables */
-extern uint8_t *frame_buf;
 
 #endif /* HOOK_CONSTANTS_H */

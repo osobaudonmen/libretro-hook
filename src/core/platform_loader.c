@@ -1,5 +1,6 @@
 #include "platform_loader.h"
 #include "hook_constants.h"
+#include "hook_globals.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>

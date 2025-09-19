@@ -12,8 +12,6 @@ libretro-hook/
 │   │   ├── libretro.h      # Core header
 │   │   ├── core_loader.c   # Core loader functionality
 │   │   ├── core_loader.h   # Core loader header
-│   │   ├── settings.c      # Settings management
-│   │   └── settings.h      # Settings header
 │   ├── external/           # External libraries
 │   │   └── libretro-common/ # Common libretro utilities
 │   ├── build/              # Build system

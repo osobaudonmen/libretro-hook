@@ -14,6 +14,7 @@
 #include "core_options.h"
 #include "platform_utils.h"
 #include "hook_constants.h"
+#include "hook_globals.h"
 
 #include <compat/strl.h>
 #include <retro_assert.h>
