@@ -6,12 +6,22 @@ A libretro core implementation with loader functionality.
 
 ```
 libretro-hook/
-├── src/                     # Main source code (previously build/make/)
+├── src/                     # Main source code
 │   ├── core/               # Core libretro implementation
-│   │   ├── libretro.c      # Main libretro core
-│   │   ├── libretro.h      # Core header
+│   │   ├── libretro.c      # Main libretro core implementation
+│   │   ├── hook_constants.h # Project constants
+│   │   ├── hook_globals.h  # Global variable declarations
 │   │   ├── core_loader.c   # Core loader functionality
 │   │   ├── core_loader.h   # Core loader header
+│   │   ├── core_discovery.c # Core discovery functionality
+│   │   ├── core_discovery.h # Core discovery header
+│   │   ├── core_options.c  # Core options management
+│   │   ├── core_options.h  # Core options header
+│   │   ├── platform_loader.c # Platform-specific core loading
+│   │   ├── platform_loader.h # Platform loader header
+│   │   ├── platform_utils.c # Platform utilities
+│   │   ├── platform_utils.h # Platform utilities header
+│   │   └── path_patterns.txt # Path pattern configuration
 │   ├── external/           # External libraries
 │   │   └── libretro-common/ # Common libretro utilities
 │   ├── build/              # Build system
@@ -42,20 +52,29 @@ cd src/build
 make
 ```
 
-This will create `sample_libretro.so` in the build directory.
+This will create `hook_libretro.so` in the build directory.
 
 ### Build Options
 
 - `DEBUG=1` - Build with debug symbols
 - `platform=<platform>` - Target specific platform (unix, osx, windows, etc.)
 
+### Supported Platforms
+
+- **Linux/Unix**: `make platform=unix`
+- **Windows**: `make platform=wincross64`
+- **Android ARMv7**: `make platform=armeabi-v7a`
+- **Android ARMv8**: `make platform=arm64-v8a`
+
 ## Features
 
-- Full libretro core implementation
-- Core loader functionality for launching other libretro cores
-- Cross-platform support
-- Comprehensive build system supporting multiple platforms
-- Example implementations for various libretro features
+- Full libretro core implementation with hook functionality
+- Dynamic core loader for launching other libretro cores
+- Cross-platform support (Linux, Windows, Android)
+- Platform-specific core loading (RetroArch, custom commands)
+- Core discovery with path pattern matching
+- Comprehensive build system supporting multiple architectures
+- Modular architecture with separate components for different functionalities
 
 ## Configuration
 

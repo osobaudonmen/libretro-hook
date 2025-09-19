@@ -33,7 +33,13 @@ static void cleanup_and_exit(void) {
 void platform_load_core(const char *core_path, const char *rom_path) {
     pid_t pid = fork();
     if (pid == 0) {
+        // まず標準的なインストール場所を試す
         execl("/usr/bin/retroarch", "retroarch", "-L", core_path, rom_path, (char *)NULL);
+        
+        // 見つからない場合はPATHから検索
+        execlp("retroarch", "retroarch", "-L", core_path, rom_path, (char *)NULL);
+        
+        // それでも見つからない場合
         _exit(127);
     } else if (pid > 0) {
         cleanup_and_exit();
@@ -70,6 +76,7 @@ void platform_load_core(const char *core_path, const char *rom_path) {
         return;
     }
 
+    // PATHからretroarch.exeを検索して実行
     if (CreateProcessA(NULL, command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
