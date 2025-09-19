@@ -112,40 +112,33 @@ void platform_run_script(const char *script_path, const char *core_path, const c
 
 #ifdef __ANDROID__
 void platform_load_core(const char *core_path, const char *rom_path) {
-    char command[MAX_COMMAND_SIZE];
-
     log_cb(RETRO_LOG_INFO, "CoreLoader: Loading core: %s with ROM: %s\n", core_path, rom_path);
 
-    // Try different RetroArch package names (newer versions use architecture-specific names)
-    const char *package_names[] = {
-        "com.retroarch.aarch64",  // 64-bit
-        "com.retroarch.arm",      // 32-bit
-        "com.retroarch"           // legacy
-    };
-    const char *activity_name = ".MainActivity";
-
-    int result = -1;
-    for (size_t i = 0; i < sizeof(package_names) / sizeof(package_names[0]); i++) {
-        int ret = snprintf(command, sizeof(command),
-            "am start -n %s/%s -e LIBRETRO \"%s\" -e ROM \"%s\"",
-            package_names[i], activity_name, core_path, rom_path);
-        if (ret >= sizeof(command)) {
-            log_cb(RETRO_LOG_ERROR, "CoreLoader: Command line too long\n");
+    // Use libretro environment callbacks to restart RetroArch with new core and ROM
+    if (environ_cb) {
+        // Set the libretro core path
+        if (!environ_cb(RETRO_ENVIRONMENT_SET_LIBRETRO_PATH, (void*)core_path)) {
+            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to set libretro path: %s\n", core_path);
             return;
         }
 
-        log_cb(RETRO_LOG_INFO, "CoreLoader: Trying command: %s\n", command);
-        result = system(command);
-        if (result == 0) {
-            log_cb(RETRO_LOG_INFO, "CoreLoader: Successfully launched RetroArch with package: %s\n", package_names[i]);
-            cleanup_and_exit();
+        // Set the game/ROM path
+        if (!environ_cb(RETRO_ENVIRONMENT_SET_GAME_PATH, (void*)rom_path)) {
+            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to set game path: %s\n", rom_path);
             return;
-        } else {
-            log_cb(RETRO_LOG_WARN, "CoreLoader: Failed with package %s, return code: %d\n", package_names[i], result);
         }
+
+        // Request restart with new core and ROM
+        if (!environ_cb(RETRO_ENVIRONMENT_RESTART, NULL)) {
+            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to restart RetroArch\n");
+            return;
+        }
+
+        log_cb(RETRO_LOG_INFO, "CoreLoader: Successfully requested RetroArch restart with core: %s, ROM: %s\n", core_path, rom_path);
+        cleanup_and_exit();
+    } else {
+        log_cb(RETRO_LOG_ERROR, "CoreLoader: Environment callback not available\n");
     }
-
-    log_cb(RETRO_LOG_ERROR, "CoreLoader: All RetroArch launch attempts failed, last command: %s\n", command);
 }
 
 void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
