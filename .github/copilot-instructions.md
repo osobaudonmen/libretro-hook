@@ -27,9 +27,10 @@
 
 ## ビルド方法
 
-- Windows用のビルドは`main/build/`ディレクトリで`make platform=wincross64`を実行してください。
-- Android ARMv7アーキテクチャ用のビルドは`main/build/`ディレクトリで`make platform=armeabi-v7a`を実行してください。
-- Android ARMv8アーキテクチャ用のビルドは`mian/build/`ディレクトリで`make platform=arm64-v8a`を実行してください。
+- Windows用のビルドは`main/build/`ディレクトリで`make windows64`を実行してください。
+- Android ARMv7アーキテクチャ用のビルドは`main/build/`ディレクトリで`make android32`を実行してください。
+- Android ARMv8アーキテクチャ用のビルドは`main/build/`ディレクトリで`make android64`を実行してください。
+- Linux用のビルドは`main/build/`ディレクトリで`make linux`を実行してください。
 - ビルドの成果物は`main/generated/`ディレクトリにプラットフォーム別のディレクトリ配下に生成されます。
 
 ## 問題調査方法
