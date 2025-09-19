@@ -116,20 +116,36 @@ void platform_load_core(const char *core_path, const char *rom_path) {
 
     log_cb(RETRO_LOG_INFO, "CoreLoader: Loading core: %s with ROM: %s\n", core_path, rom_path);
 
-    int ret = snprintf(command, sizeof(command),
-        "am start -n com.retroarch/.browser.retroarch.RetroArchActivity -e ROM \"%s\" -e LIBRETRO \"%s\"",
-        rom_path, core_path);
-    if (ret >= sizeof(command)) {
-        log_cb(RETRO_LOG_INFO, "CoreLoader: Command line too long\n");
-        return;
+    // Try different RetroArch package names (newer versions use architecture-specific names)
+    const char *package_names[] = {
+        "com.retroarch.aarch64",  // 64-bit
+        "com.retroarch.arm",      // 32-bit
+        "com.retroarch"           // legacy
+    };
+    const char *activity_name = ".MainActivity";
+
+    int result = -1;
+    for (size_t i = 0; i < sizeof(package_names) / sizeof(package_names[0]); i++) {
+        int ret = snprintf(command, sizeof(command),
+            "am start -n %s/%s -e LIBRETRO \"%s\" -e ROM \"%s\"",
+            package_names[i], activity_name, core_path, rom_path);
+        if (ret >= sizeof(command)) {
+            log_cb(RETRO_LOG_ERROR, "CoreLoader: Command line too long\n");
+            return;
+        }
+
+        log_cb(RETRO_LOG_INFO, "CoreLoader: Trying command: %s\n", command);
+        result = system(command);
+        if (result == 0) {
+            log_cb(RETRO_LOG_INFO, "CoreLoader: Successfully launched RetroArch with package: %s\n", package_names[i]);
+            cleanup_and_exit();
+            return;
+        } else {
+            log_cb(RETRO_LOG_WARN, "CoreLoader: Failed with package %s, return code: %d\n", package_names[i], result);
+        }
     }
 
-    int result = system(command);
-    if (result != 0) {
-        log_cb(RETRO_LOG_INFO, "CoreLoader: Failed to launch RetroArch: return code %d, command: %s\n", result, command);
-    } else {
-        cleanup_and_exit();
-    }
+    log_cb(RETRO_LOG_ERROR, "CoreLoader: All RetroArch launch attempts failed, last command: %s\n", command);
 }
 
 void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
