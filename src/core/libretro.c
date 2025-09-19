@@ -114,6 +114,7 @@ void retro_get_system_info(struct retro_system_info *info)
    info->library_name     = "hook";
    info->library_version  = "0.1";
    info->need_fullpath    = true;
+   info->block_extract    = true;
    info->valid_extensions = "7z|zip";
 }
 
