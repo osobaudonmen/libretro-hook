@@ -106,15 +106,14 @@ void platform_load_core(const char *core_path, const char *rom_path)
 #endif
 }
 
-void platform_run_script(const char *script_path, const char *core_file,
-                         const char *core_path, const char *rom_path)
+void platform_run_script(const char *script_path, const char *core_path, const char *rom_path)
 {
     #ifdef __unix__
         /* UNIX/Linux: execute shell script */
         if (access(script_path, X_OK) == 0) {
             pid_t pid = fork();
             if (pid == 0) {
-                execl(script_path, script_path, core_file, core_path, rom_path, (char *)NULL);
+                execl(script_path, script_path, core_path, rom_path, (char *)NULL);
                 _exit(127); /* exec failed */
             } else if (pid > 0) {
                 int status;
@@ -126,8 +125,8 @@ void platform_run_script(const char *script_path, const char *core_file,
         DWORD attrib = GetFileAttributesA(script_path);
         if (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY)) {
             char command[MAX_COMMAND_SIZE];
-            snprintf(command, sizeof(command), "\"%s\" \"%s\" \"%s\" \"%s\"",
-                    script_path, core_file, core_path, rom_path);
+            snprintf(command, sizeof(command), "\"%s\" \"%s\" \"%s\"",
+                    script_path, core_path, rom_path);
             STARTUPINFOA si;
             PROCESS_INFORMATION pi;
             ZeroMemory(&si, sizeof(si));
@@ -143,8 +142,8 @@ void platform_run_script(const char *script_path, const char *core_file,
         /* Android: execute shell script */
         if (access(script_path, X_OK) == 0) {
             char command[MAX_COMMAND_SIZE];
-            snprintf(command, sizeof(command), "%s '%s' '%s' '%s'",
-                    script_path, core_file, core_path, rom_path);
+            snprintf(command, sizeof(command), "%s '%s' '%s'",
+                    script_path, core_path, rom_path);
             int result = system(command);
             if (result != 0) {
                 __android_log_print(ANDROID_LOG_ERROR, "CoreLoader",
@@ -154,7 +153,6 @@ void platform_run_script(const char *script_path, const char *core_file,
     #else
         /* Unsupported platform */
         (void)script_path;
-        (void)core_file;
         (void)core_path;
         (void)rom_path;
     #endif

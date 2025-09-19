@@ -164,6 +164,7 @@ bool retro_load_game(const struct retro_game_info *info)
 		const char* selected_core = find_matching_core(retro_game_path);
 		if (selected_core) {
 			log_cb(RETRO_LOG_INFO, "Selected core for game: %s\n", selected_core);
+         call_script_before_load(selected_core, retro_game_path);
          load_core(selected_core, retro_game_path);
 		} else {
 			log_cb(RETRO_LOG_INFO, "No matching core pattern found, using default behavior\n");
