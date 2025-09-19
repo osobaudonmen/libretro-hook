@@ -15,6 +15,8 @@
 #include <streams/file_stream.h>
 #include <compat/strl.h>
 
+#include "core_loader.h"
+
 #define VIDEO_WIDTH 256
 #define VIDEO_HEIGHT 192
 #define VIDEO_PIXELS VIDEO_WIDTH * VIDEO_HEIGHT
@@ -47,26 +49,26 @@ static retro_environment_t environ_cb;
 const char* find_matching_core(const char* game_path)
 {
    if (!game_path) return NULL;
-   
+
    log_cb(RETRO_LOG_INFO, "Finding core for path: %s\n", game_path);
-   
+
    // Check each pattern and return matching core
    for (int i = 1; i <= 10; i++) {
        char pattern_key[64], core_key[64];
        snprintf(pattern_key, sizeof(pattern_key), "libretro_hook_path_pattern_%d", i);
        snprintf(core_key, sizeof(core_key), "libretro_hook_core_select_%d", i);
-       
+
        struct retro_variable var_pattern = { pattern_key, NULL };
        struct retro_variable var_core = { core_key, NULL };
-       
+
        if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var_pattern) && var_pattern.value &&
            environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var_core) && var_core.value) {
-           
+
            // Check if pattern is set and matches
            if (strlen(var_pattern.value) > 0 && strstr(game_path, var_pattern.value)) {
-               log_cb(RETRO_LOG_INFO, "Pattern '%s' matches, selected core: %s\n", 
+               log_cb(RETRO_LOG_INFO, "Pattern '%s' matches, selected core: %s\n",
                       var_pattern.value, var_core.value);
-               
+
                // Return core if not "none"
                if (strcmp(var_core.value, "none") != 0) {
                    return var_core.value;
@@ -74,7 +76,7 @@ const char* find_matching_core(const char* game_path)
            }
        }
    }
-   
+
    return NULL; // No matching pattern found
 }
 
@@ -156,7 +158,7 @@ void init_core_options(void)
    // Ensure patterns list has defaults if empty
    if (available_patterns_list[0] == '\0')
       strcpy(available_patterns_list, "/mame/|/fbneo/|/arcade/");
-   
+
    // Discover available cores and build selection list
    const char *path = NULL;
    if (environ_cb(RETRO_ENVIRONMENT_GET_LIBRETRO_PATH, &path) && path)
@@ -189,29 +191,29 @@ void init_core_options(void)
 
    // Create core option variables with discovered cores
    static struct retro_variable vars[21]; // 10 pairs + 1 NULL terminator
-   
+
    // Build the variables dynamically
    for (int i = 0; i < 10; i++) {
        static char pattern_keys[10][64];
        static char core_keys[10][64];
    static char pattern_desc[10][128];
    static char core_desc[10][8192];
-       
+
       snprintf(pattern_keys[i], sizeof(pattern_keys[i]), "libretro_hook_path_pattern_%d", i + 1);
       snprintf(core_keys[i], sizeof(core_keys[i]), "libretro_hook_core_select_%d", i + 1);
       snprintf(pattern_desc[i], sizeof(pattern_desc[i]), "Path Pattern %d; %s", i + 1, available_patterns_list);
       snprintf(core_desc[i], sizeof(core_desc[i]), "Core Select %d; %s", i + 1, available_cores_list);
-       
+
        vars[i * 2].key = pattern_keys[i];
        vars[i * 2].value = pattern_desc[i];
        vars[i * 2 + 1].key = core_keys[i];
        vars[i * 2 + 1].value = core_desc[i];
    }
-   
+
    // NULL terminator
    vars[20].key = NULL;
    vars[20].value = NULL;
-   
+
    environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
 }
 
@@ -300,21 +302,21 @@ void retro_reset(void)
 static void check_variables(void)
 {
    log_cb(RETRO_LOG_INFO, "Checking variables...\n");
-   
+
    // Log current path patterns and core selections
    for (int i = 1; i <= 10; i++) {
        char pattern_key[64], core_key[64];
        snprintf(pattern_key, sizeof(pattern_key), "libretro_hook_path_pattern_%d", i);
        snprintf(core_key, sizeof(core_key), "libretro_hook_core_select_%d", i);
-       
+
        struct retro_variable var_pattern = { pattern_key, NULL };
        struct retro_variable var_core = { core_key, NULL };
-       
+
        if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var_pattern) && var_pattern.value &&
            environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var_core) && var_core.value) {
-           
+
            if (strlen(var_pattern.value) > 0) {
-               log_cb(RETRO_LOG_INFO, "Pattern %d: '%s' -> Core: %s\n", 
+               log_cb(RETRO_LOG_INFO, "Pattern %d: '%s' -> Core: %s\n",
                       i, var_pattern.value, var_core.value);
            }
        }
@@ -342,15 +344,12 @@ bool retro_load_game(const struct retro_game_info *info)
 	if (info != NULL) {
 		snprintf(retro_game_path, sizeof(retro_game_path), "%s", info->path);
 		log_cb(RETRO_LOG_INFO, "Loading game: %s\n", retro_game_path);
-		
+
 		// Find matching core for this path
 		const char* selected_core = find_matching_core(retro_game_path);
 		if (selected_core) {
 			log_cb(RETRO_LOG_INFO, "Selected core for game: %s\n", selected_core);
-			
-			// TODO: Load the selected core dynamically
-			// This would require core_loader implementation
-			log_cb(RETRO_LOG_INFO, "Core loading not yet implemented\n");
+         load_core(selected_core, retro_game_path);
 		} else {
 			log_cb(RETRO_LOG_INFO, "No matching core pattern found, using default behavior\n");
 		}
