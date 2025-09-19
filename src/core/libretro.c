@@ -111,10 +111,10 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 void retro_get_system_info(struct retro_system_info *info)
 {
    memset(info, 0, sizeof(*info));
-   info->library_name     = "skeleton";
+   info->library_name     = "hook";
    info->library_version  = "0.1";
    info->need_fullpath    = true;
-   info->valid_extensions = "";
+   info->valid_extensions = "7z|zip";
 }
 
 static retro_video_refresh_t video_cb;
