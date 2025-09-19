@@ -114,27 +114,17 @@ void platform_run_script(const char *script_path, const char *core_path, const c
 void platform_load_core(const char *core_path, const char *rom_path) {
     log_cb(RETRO_LOG_INFO, "CoreLoader: Loading core: %s with ROM: %s\n", core_path, rom_path);
 
-    // Use libretro environment callbacks to restart RetroArch with new core and ROM
+    // On Android, we need to return control to RetroArch frontend
+    // The frontend should handle loading the new core and ROM
     if (environ_cb) {
-        // Set the libretro core path
-        if (!environ_cb(RETRO_ENVIRONMENT_SET_LIBRETRO_PATH, (void*)core_path)) {
-            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to set libretro path: %s\n", core_path);
+        // Shutdown the current core to return control to frontend
+        if (!environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL)) {
+            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to shutdown current core\n");
             return;
         }
 
-        // Set the game/ROM path
-        if (!environ_cb(RETRO_ENVIRONMENT_SET_GAME_PATH, (void*)rom_path)) {
-            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to set game path: %s\n", rom_path);
-            return;
-        }
-
-        // Request restart with new core and ROM
-        if (!environ_cb(RETRO_ENVIRONMENT_RESTART, NULL)) {
-            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to restart RetroArch\n");
-            return;
-        }
-
-        log_cb(RETRO_LOG_INFO, "CoreLoader: Successfully requested RetroArch restart with core: %s, ROM: %s\n", core_path, rom_path);
+        log_cb(RETRO_LOG_INFO, "CoreLoader: Returned control to RetroArch frontend for core: %s, ROM: %s\n", core_path, rom_path);
+        log_cb(RETRO_LOG_INFO, "CoreLoader: Please manually load the core and ROM in RetroArch\n");
         cleanup_and_exit();
     } else {
         log_cb(RETRO_LOG_ERROR, "CoreLoader: Environment callback not available\n");
