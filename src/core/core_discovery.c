@@ -18,6 +18,13 @@ const char* find_matching_core(const char* game_path)
 
    log_cb(RETRO_LOG_INFO, "Finding core for path: %s\n", game_path);
 
+   /* Normalize path separators to forward slashes for consistent matching */
+   char normalized_path[4096];
+   strlcpy(normalized_path, game_path, sizeof(normalized_path));
+   for (char *p = normalized_path; *p; p++) {
+       if (*p == '\\') *p = '/';
+   }
+
    /* Check each pattern and return matching core */
    for (int i = 1; i <= 10; i++) {
        char pattern_key[64], core_key[64];
@@ -31,7 +38,7 @@ const char* find_matching_core(const char* game_path)
            environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var_core) && var_core.value) {
 
            /* Check if pattern is set and matches */
-           if (strlen(var_pattern.value) > 0 && strstr(game_path, var_pattern.value)) {
+           if (strlen(var_pattern.value) > 0 && strstr(normalized_path, var_pattern.value)) {
                log_cb(RETRO_LOG_INFO, "Pattern '%s' matches, selected core: %s\n",
                       var_pattern.value, var_core.value);
 
