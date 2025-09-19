@@ -1,5 +1,6 @@
 #include "core_discovery.h"
 #include "hook_constants.h"
+#include "hook_globals.h"
 #include <stdio.h>
 #include <string.h>
 #include <retro_dirent.h>
@@ -7,10 +8,6 @@
 #include <streams/file_stream.h>
 #include <compat/strl.h>
 #include <retro_assert.h>
-
-/* External dependencies */
-extern retro_environment_t environ_cb;
-extern retro_log_printf_t log_cb;
 
 const char* find_matching_core(const char* game_path)
 {

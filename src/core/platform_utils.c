@@ -1,10 +1,8 @@
 #include "platform_utils.h"
 #include "hook_constants.h"
-#include "libretro.h"
+#include "hook_globals.h"
+#include <stdio.h>
 #include <compat/strl.h>
-
-/* External dependencies */
-extern retro_environment_t environ_cb;
 
 const char* get_system_directory(void)
 {
@@ -17,4 +15,19 @@ const char* get_system_directory(void)
    }
 
    return NULL;
+}
+
+const char* get_script_path(const char* script_name)
+{
+   static char script_path[MAX_SCRIPT_PATH_SIZE] = "";
+   const char* system_dir = get_system_directory();
+   if (!system_dir) return NULL;
+
+#ifdef _WIN32
+   snprintf(script_path, sizeof(script_path), "%s\\hook\\%s.bat", system_dir, script_name);
+#else
+   snprintf(script_path, sizeof(script_path), "%s/hook/%s.sh", system_dir, script_name);
+#endif
+
+   return script_path;
 }

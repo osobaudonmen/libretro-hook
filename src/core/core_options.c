@@ -1,13 +1,10 @@
 #include "core_options.h"
 #include "core_discovery.h"
+#include "hook_globals.h"
 #include <stdio.h>
 #include <string.h>
 #include <retro_assert.h>
 #include <compat/strl.h>
-
-/* External dependencies */
-extern retro_environment_t environ_cb;
-extern retro_log_printf_t log_cb;
 
 static char available_cores_list[MAX_CORES_LIST_SIZE] = "none";
 static char available_patterns_list[MAX_PATTERNS_LIST_SIZE] = "";

@@ -20,10 +20,10 @@
 #include <retro_assert.h>
 
 uint8_t *frame_buf;
-static struct retro_log_callback logging;
+struct retro_log_callback logging;
 retro_log_printf_t log_cb;
 retro_environment_t environ_cb;
-static retro_video_refresh_t video_cb;
+retro_video_refresh_t video_cb;
 
 /* Global paths for debugging/logging */
 static char retro_base_directory[MAX_PATH_SIZE];
@@ -77,8 +77,6 @@ void retro_get_system_info(struct retro_system_info *info)
    info->block_extract    = true;
    info->valid_extensions = "7z|zip";
 }
-
-static retro_video_refresh_t video_cb;
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
