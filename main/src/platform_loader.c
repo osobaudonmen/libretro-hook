@@ -1,4 +1,5 @@
 #include "platform_loader.h"
+#include "platform_utils.h"
 #include "hook_constants.h"
 #include "hook_globals.h"
 #include <stdio.h>
@@ -48,6 +49,12 @@ void platform_load_core(const char *core_path, const char *rom_path) {
 
 void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
     if (access(script_path, X_OK) == 0) {
+        const char *home_dir = get_retroarch_home_directory();
+        if (!home_dir) {
+            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get RetroArch home directory\n");
+            return;
+        }
+
         int pipefd[2];
         if (pipe(pipefd) == -1) {
             log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to create pipe\n");
@@ -58,7 +65,7 @@ void platform_run_script(const char *script_path, const char *core_path, const c
             close(pipefd[0]);
             dup2(pipefd[1], STDOUT_FILENO);
             close(pipefd[1]);
-            execl(script_path, script_path, core_path, rom_path, (char *)NULL);
+            execl(script_path, script_path, home_dir, core_path, rom_path, (char *)NULL);
             _exit(127);
         } else if (pid > 0) {
             close(pipefd[1]);
@@ -109,8 +116,14 @@ void platform_load_core(const char *core_path, const char *rom_path) {
 void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
     DWORD attrib = GetFileAttributesA(script_path);
     if (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY)) {
+        const char *home_dir = get_retroarch_home_directory();
+        if (!home_dir) {
+            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get RetroArch home directory\n");
+            return;
+        }
+
         char command[MAX_COMMAND_SIZE];
-        snprintf(command, sizeof(command), "\"%s\" \"%s\" \"%s\"", script_path, core_path, rom_path);
+        snprintf(command, sizeof(command), "\"%s\" \"%s\" \"%s\" \"%s\"", script_path, home_dir, core_path, rom_path);
         STARTUPINFOA si;
         PROCESS_INFORMATION pi;
         ZeroMemory(&si, sizeof(si));
@@ -175,8 +188,14 @@ void platform_load_core(const char *core_path, const char *rom_path) {
 
 void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
     if (access(script_path, X_OK) == 0) {
+        const char *home_dir = get_retroarch_home_directory();
+        if (!home_dir) {
+            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get RetroArch home directory\n");
+            return;
+        }
+
         char command[MAX_COMMAND_SIZE];
-        snprintf(command, sizeof(command), "%s '%s' '%s'", script_path, core_path, rom_path);
+        snprintf(command, sizeof(command), "%s '%s' '%s' '%s'", script_path, home_dir, core_path, rom_path);
         FILE *fp = popen(command, "r");
         if (fp) {
             char buffer[1024];

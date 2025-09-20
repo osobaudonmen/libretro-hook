@@ -31,3 +31,23 @@ const char* get_script_path(const char* script_name)
 
    return script_path;
 }
+
+const char* get_retroarch_home_directory(void)
+{
+   static char home_dir[MAX_PATH_SIZE] = "";
+   const char *dir = NULL;
+
+   if (environ_cb && environ_cb(RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY, &dir) && dir) {
+      strlcpy(home_dir, dir, sizeof(home_dir));
+      return home_dir;
+   }
+
+   // フォールバック: システムディレクトリを使用
+   dir = get_system_directory();
+   if (dir) {
+      strlcpy(home_dir, dir, sizeof(home_dir));
+      return home_dir;
+   }
+
+   return NULL;
+}
