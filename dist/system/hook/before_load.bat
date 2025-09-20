@@ -63,9 +63,9 @@ REM Determine overlay path based on game name
 REM Use game name directly as overlay name
 set OVERLAY_NAME=%GAME_NAME%
 
-REM Create game-specific config file (absolute path)
+REM Create game-specific config file
 set CONFIG_FILE=%RETROARCH_CONFIG_DIR%\%SYSTEM_NAME%\%GAME_NAME%.cfg
-REM Convert to absolute path for overlay
+REM Convert to absolute path for overlay (absolute path)
 for %%i in ("%RETROARCH_OVERLAY_DIR%\mahjong\mahjong_%OVERLAY_NAME%.cfg") do set OVERLAY_PATH=%%~fi
 
 echo # Auto-generated overlay configuration for %GAME_NAME% > "%CONFIG_FILE%"
