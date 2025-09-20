@@ -86,7 +86,7 @@ void platform_load_core(const char *core_path, const char *rom_path) {
         DWORD error = GetLastError();
         char error_msg[MAX_ERROR_MSG_SIZE];
         snprintf(error_msg, sizeof(error_msg), "Failed to start retroarch.exe: Error code %lu\nCommand: %s", error, command);
-        MessageBoxA(NULL, error_msg, "Core Loader Error", MB_OK | MB_ICONERROR);
+        log_cb(RETRO_LOG_ERROR, "CoreLoader: Error: %s\n", error_msg);
     }
 }
 
@@ -100,10 +100,14 @@ void platform_run_script(const char *script_path, const char *core_path, const c
         ZeroMemory(&si, sizeof(si));
         si.cb = sizeof(si);
         ZeroMemory(&pi, sizeof(pi));
+        log_cb(RETRO_LOG_INFO, "CoreLoader: Command: %s\n", command);
         if (CreateProcessA(NULL, command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
             WaitForSingleObject(pi.hProcess, INFINITE);
             CloseHandle(pi.hProcess);
             CloseHandle(pi.hThread);
+        } else {
+            DWORD error = GetLastError();
+            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to run script: Error code %lu\n", error);
         }
     }
 }
