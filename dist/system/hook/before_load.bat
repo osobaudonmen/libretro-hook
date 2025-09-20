@@ -2,17 +2,17 @@
 REM Autoload Mahjong Overlays for MAME and FinalBurn Neo cores in RetroArch
 
 REM User configurable directories (uncomment and modify as needed)
-REM set RETROARCH_HOME_DIR_OVERRIDE=C:\custom\path\to\retroarch
+REM set RETROARCH_HOME_DIR=C:\custom\path\to
 REM set RETROARCH_CONFIG_DIR=C:\custom\path\to\config
 REM set RETROARCH_OVERLAY_DIR=C:\custom\path\to\overlays
 
 REM Check arguments
 if "%~3"=="" (
-    echo Usage: %0 ^<retroarch_home_dir^> ^<core_path^> ^<rom_path^>
+    echo Usage: %0 ^<system_dir^> ^<core_path^> ^<rom_path^>
     exit /b 1
 )
 
-set RETROARCH_HOME_DIR=%~1
+set SYSTEM_DIR=%~1
 set CORE_PATH=%~2
 set ROM_PATH=%~3
 
@@ -40,10 +40,14 @@ REM Extract game name from ROM path (remove extension and path)
 for %%i in ("%ROM_PATH%") do set ROM_BASENAME=%%~ni
 set GAME_NAME=%ROM_BASENAME%
 
-REM RetroArch home directory is now provided as argument
+REM System directory is now provided as argument
 REM But still allow override via environment variable
-if not "%RETROARCH_HOME_DIR_OVERRIDE%"=="" (
-    set RETROARCH_HOME_DIR=%RETROARCH_HOME_DIR_OVERRIDE%
+if not "%SYSTEM_DIR_OVERRIDE%"=="" (
+    set SYSTEM_DIR=%SYSTEM_DIR_OVERRIDE%
+)
+
+if "%RETROARCH_HOME_DIR%"=="" (
+    set RETROARCH_HOME_DIR=%SYSTEM_DIR%\..
 )
 
 REM Set config and overlay directories if not set

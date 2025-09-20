@@ -3,17 +3,17 @@
 # Autoload Mahjong Overlays for MAME and FinalBurn Neo cores in RetroArch
 
 # User configurable directories (uncomment and modify as needed)
-# RETROARCH_HOME_DIR_OVERRIDE="/custom/path/to/retroarch"
+# RETROARCH_HOME_DIR="/custom/path/to"
 # RETROARCH_CONFIG_DIR="/custom/path/to/config"
 # RETROARCH_OVERLAY_DIR="/custom/path/to/overlays"
 
 # Check arguments
 if [ $# -ne 3 ]; then
-    echo "Usage: $0 <retroarch_home_dir> <core_path> <rom_path>"
+    echo "Usage: $0 <system_dir> <core_path> <rom_path>"
     exit 1
 fi
 
-RETROARCH_HOME_DIR="$1"
+SYSTEM_DIR="$1"
 CORE_PATH="$2"
 ROM_PATH="$3"
 
@@ -39,10 +39,15 @@ esac
 ROM_BASENAME=$(basename "$ROM_PATH")
 GAME_NAME="${ROM_BASENAME%.*}"
 
-# RetroArch home directory is now provided as argument
+# System directory is now provided as argument
 # But still allow override via environment variable
-if [ -n "$RETROARCH_HOME_DIR_OVERRIDE" ]; then
-    RETROARCH_HOME_DIR="$RETROARCH_HOME_DIR_OVERRIDE"
+if [ -n "$SYSTEM_DIR_OVERRIDE" ]; then
+    SYSTEM_DIR="$SYSTEM_DIR_OVERRIDE"
+fi
+
+# Determine RetroArch home directory from system directory
+if [ -z "$RETROARCH_HOME_DIR" ]; then
+    RETROARCH_HOME_DIR="$(dirname "$SYSTEM_DIR")"
 fi
 
 # Set config and overlay directories if not set
