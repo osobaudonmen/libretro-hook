@@ -18,7 +18,6 @@
 #ifdef __ANDROID__
 #include <stdlib.h>
 #include <unistd.h>
-#include <android/log.h>
 #endif
 
 static void cleanup_and_exit(void) {
