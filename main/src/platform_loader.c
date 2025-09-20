@@ -48,11 +48,27 @@ void platform_load_core(const char *core_path, const char *rom_path) {
 
 void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
     if (access(script_path, X_OK) == 0) {
+        int pipefd[2];
+        if (pipe(pipefd) == -1) {
+            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to create pipe\n");
+            return;
+        }
         pid_t pid = fork();
         if (pid == 0) {
+            close(pipefd[0]);
+            dup2(pipefd[1], STDOUT_FILENO);
+            close(pipefd[1]);
             execl(script_path, script_path, core_path, rom_path, (char *)NULL);
             _exit(127);
         } else if (pid > 0) {
+            close(pipefd[1]);
+            char buffer[1024];
+            ssize_t bytes_read;
+            while ((bytes_read = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) {
+                buffer[bytes_read] = '\0';
+                log_cb(RETRO_LOG_INFO, "CoreLoader: Script output: %s", buffer);
+            }
+            close(pipefd[0]);
             int status;
             waitpid(pid, &status, 0);
         }
@@ -100,11 +116,34 @@ void platform_run_script(const char *script_path, const char *core_path, const c
         ZeroMemory(&si, sizeof(si));
         si.cb = sizeof(si);
         ZeroMemory(&pi, sizeof(pi));
+
+        HANDLE hRead, hWrite;
+        SECURITY_ATTRIBUTES sa;
+        sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+        sa.lpSecurityDescriptor = NULL;
+        sa.bInheritHandle = TRUE;
+        if (!CreatePipe(&hRead, &hWrite, &sa, 0)) {
+            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to create pipe\n");
+            return;
+        }
+        si.hStdOutput = hWrite;
+        si.hStdError = hWrite;
+        si.dwFlags |= STARTF_USESTDHANDLES;
+
         log_cb(RETRO_LOG_INFO, "CoreLoader: Command: %s\n", command);
-        if (CreateProcessA(NULL, command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+        if (CreateProcessA(NULL, command, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
+            CloseHandle(hWrite);
+            char buffer[1024];
+            DWORD bytes_read;
+            while (ReadFile(hRead, buffer, sizeof(buffer) - 1, &bytes_read, NULL) && bytes_read > 0) {
+                buffer[bytes_read] = '\0';
+                log_cb(RETRO_LOG_INFO, "CoreLoader: Script output: %s", buffer);
+            }
+            CloseHandle(hRead);
             WaitForSingleObject(pi.hProcess, INFINITE);
             CloseHandle(pi.hProcess);
             CloseHandle(pi.hThread);
+            log_cb(RETRO_LOG_INFO, "CoreLoader: Finished to run script\n");
         } else {
             DWORD error = GetLastError();
             log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to run script: Error code %lu\n", error);
@@ -138,9 +177,18 @@ void platform_run_script(const char *script_path, const char *core_path, const c
     if (access(script_path, X_OK) == 0) {
         char command[MAX_COMMAND_SIZE];
         snprintf(command, sizeof(command), "%s '%s' '%s'", script_path, core_path, rom_path);
-        int result = system(command);
-        if (result != 0) {
-            log_cb(RETRO_LOG_INFO, "CoreLoader: Script execution failed: %d, command: %s\n", result, command);
+        FILE *fp = popen(command, "r");
+        if (fp) {
+            char buffer[1024];
+            while (fgets(buffer, sizeof(buffer), fp)) {
+                log_cb(RETRO_LOG_INFO, "CoreLoader: Script output: %s", buffer);
+            }
+            int result = pclose(fp);
+            if (result != 0) {
+                log_cb(RETRO_LOG_ERROR, "CoreLoader: Script execution failed: %d, command: %s\n", result, command);
+            }
+        } else {
+            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to run script with popen\n");
         }
     }
 }
