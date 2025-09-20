@@ -9,6 +9,7 @@
 
 - libretro-hookは、libretroコアの実装であり、他のlibretroコアをロードして実行するためのローダー機能を提供します。
 - Windows(wincross64)、Linux(unix)、Android(arm64-v8a、armeabi-v7a)に向けたビルドをサポートしています。
+- 現状Androidは子プロセスやインテントを用いたRetroArchの起動ができないため正常に動作しません。
 
 ## 開発指針
 
@@ -24,6 +25,7 @@
 
 - ndk-build : PATHが通っていない場合は`/opt/android-ndk-{VER}/ndk-build`を使用してください。
   `{VER}`はNDKのバージョンで、デフォルトで`r27c`を使用してください。
+- バッチファイル(.bat)の動作検証は`wine`を使用してください。
 
 ## ビルド方法
 
@@ -46,3 +48,4 @@
 - `dist/release/cores/`以下にプラットフォーム別のディレクトリを作成し、各プラットフォーム用のバイナリを配置してください
 - `dist/info/`をコアのメタ情報として含めてください
 - `dist/system/hook/`をコアが使用する外部ファイルとして含めてください
+- `dist/system/hook/before_run.sh`を変換して`dist/system/hook/before_run.bat`をWindows用に生成してください
