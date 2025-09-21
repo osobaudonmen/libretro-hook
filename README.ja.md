@@ -61,3 +61,40 @@ libretro-hook は、ゲーム開始前に任意のスクリプト（`before_load
 4. 上記の形式が出力された場合、libretro-hook は `retroarch` を子プロセスで起動します。
 5. スクリプトが上記の出力を行わなかった場合、スクリプトに渡した引数や標準出力/標準エラーはゲーム画面上に表示されます。
 
+
+## インストール
+
+ダウンロードしたアーティファクト（ZIP または `.so` / `.dll`）をプラットフォームに応じて配置します。以下は代表的な手順です。
+
+- Linux (unix):
+  - 配布 ZIP を解凍し、`hook_libretro.so` を任意のディレクトリに置きます。例えば:
+
+    ```bash
+    unzip libretro-hook-release-linux.zip
+    sudo cp generated/unix/hook_libretro.so /usr/local/lib/libretro/hook_libretro.so
+    ```
+
+  - RetroArch のコア検索パス（通常は `~/.config/retroarch/cores/` や `/usr/local/lib/libretro/`）に配置するか、RetroArch 側で手動でコアを指定してください。
+
+  - 検証: RetroArch から `hook_libretro.so` をロードし、ROM を起動して `before_load.sh` が実行されることを確認します。
+
+- Windows (wincross64):
+  - ZIP を解凍し、`hook_libretro.dll`（ファイル名は配布物に従う）を RetroArch のコアフォルダにコピーします。
+  - `before_load.bat` を `scripts\` に置き、必要に応じて編集してください。
+  - 検証: RetroArch を起動し、コアとして libretro-hook を選んで ROM をロードします。スクリプト出力が画面に表示されるか、指定のコア起動が行われることを確認します。
+
+- Android (arm64/armv7) — 限定的サポート:
+  - Android 用にビルドされた `.so` を対応する ABI ディレクトリ（例: `lib/arm64-v8a/`）に置き、APK に含めるか、RetroArch のコア格納場所に展開します。
+  - 注意: Android では子プロセスの起動やインテントによる RetroArch 起動が制限される場合があり、期待通り動作しないことがあります。
+
+### 検証手順（一般）
+
+- ログ: RetroArch のログ（通常は `~/.config/retroarch/retroarch.log`）を確認して、`before_load.sh` / `before_load.bat` の出力やエラーを確認します。
+- スクリプトの簡易チェック: 手元の端末でスクリプトを直接実行して返り値や標準出力を確認します。
+
+```bash
+bash scripts/before_load.sh /path/to/system /path/to/rom
+```
+
+上記が正しく動作すれば、RetroArch からの呼び出しでも同様の動作が期待できます。
+
