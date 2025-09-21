@@ -1,83 +1,73 @@
 # libretro-hook
 
-[日本語 README](README.ja.md)
+[Japanese README](README.ja.md)
 
-Libretro Hook is a libretro core that runs an arbitrary script (`before_load.sh` / `before_load.bat`) before a game starts.
-Main use cases:
-- Run per-ROM preparatory tasks when loaded by a libretro frontend (switch config, launch external process, etc.).
-- The provided sample script demonstrates prioritizing per-game overlays for Mahjong arcade titles (MAME/FBNeo).
-Reference:
-- https://github.com/osobaudonmen/retroarch_mahjong_overlays
-Supported platforms
-- Linux (unix)
-- Windows (wincross64)
-- Android (arm64-v8a, armeabi-v7a) — Note: Android currently has limitations around spawning child processes or launching RetroArch via intents; functionality may be limited.
+Overview
+
+libretro-hook is a RetroArch core that runs a script before a game starts. The bundled sample script demonstrates automatic overlay loading for Mahjong titles on MAME/FBNeo: https://github.com/osobaudonmen/retroarch_mahjong_overlays
+
 Downloads
 
-- Artifacts from `master` pushes:
-  - CI runs when `master` receives a push. Build artifacts are uploaded as workflow artifacts.
-- GitHub Releases (tagged):
-  - Pushing a tag like `v0.1` triggers a workflow that creates a GitHub Release and attaches per-platform ZIPs.
-  - Download releases from: `https://github.com/osobaudonmen/libretro-hook/releases`
-Building locally
+- Artifacts from `master` pushes: CI uploads workflow artifacts for pushes to `master`. Download the matching `libretro-hook-release-*` artifact from the GitHub Actions run.
+- GitHub Releases (tagged): Pushing a tag (e.g. `v0.1`) creates a Release with platform ZIP files attached.
 
-Build scripts are in `main/build`. Typical targets:
-- Linux:
-  - `cd main/build && make linux`
-- Windows (cross-build):
-  - `cd main/build && make windows64`
-- Android (ARMv7):
-  - `cd main/build && make android32`
-- Android (ARM64):
-  - `cd main/build && make android64`
-Artifacts are generated under `main/generated/` or `generated/` in platform-specific subdirectories.
+Installation
 
-Android builds require the Android NDK. If `ndk-build` is not on `PATH`, use `/opt/android-ndk-{VER}/ndk-build` (default: `r27c`).
-If a build fails, try `make clean` and build again.
+Unpack the downloaded archive and place the files into your RetroArch installation. Examples:
 
-Usage (how it works)
-1. When this core is loaded by a libretro frontend and a ROM is provided, the core runs `before_load.sh` (Unix) or `before_load.bat` (Windows).
-2. The script receives command-line arguments and may write to stdout/stderr.
-3. If the script prints a core name in the following format to stdout, libretro-hook will launch `retroarch` as a child process to run the selected core with the same ROM:
+Windows example
+
+```text
+<RETROARCH_HOME>\cores\hook_libretro.dll
+<RETROARCH_HOME>\info\hook_libretro.info
+<RETROARCH_HOME>\system\hook\before_load.bat
 ```
+
+Linux example
+
+```text
+<RETROARCH_HOME>/cores/hook_libretro.so
+<RETROARCH_HOME>/info/hook_libretro.info
+<RETROARCH_HOME>/system/hook/before_load.sh
+```
+
+After placing files, restart RetroArch or reload cores and verify operation.
+
+Build
+
+Build scripts are located in `main/build`. Typical targets:
+
+- Linux: `cd main/build && make linux`
+- Windows: `cd main/build && make windows64`
+
+Build artifacts are written to `main/generated/`.
+
+Usage
+
+1. Load this core in RetroArch and select a ROM.
+2. The core executes `before_load.sh` (Unix) or `before_load.bat` (Windows). The script receives the RetroArch System directory and the ROM full path as arguments.
+3. If the script prints a core name to stdout in the following format, libretro-hook will launch `retroarch` as a child process to run that core with the same ROM:
+
+```text
 <core:mame_libretro.so>
 ```
-4. When that output is produced, libretro-hook spawns `retroarch` and then exits with `exit(0)`.
-5. If the script does not produce the `<core:...>` output, the script's arguments and stdout/stderr are shown on the game screen.
 
-Examples
-- Edit `scripts/before_load.sh` to suit your environment — an example is included in the `scripts/` directory.
+4. If no `<core:...>` output is produced, the script's stdout/stderr will be shown on the game screen.
 
-Development guidelines
-- Follow the libretro API (`libretro.h`) for core implementation.
-- Prefer using `libretro-common` for portability.
-- Remove duplicate, unused, or noisy logging.
+Verification
+
+- Check RetroArch logs (e.g. `~/.config/retroarch/retroarch.log`) for script output and errors.
+- Test scripts locally before deployment by running:
+
+```bash
+bash scripts/before_load.sh /path/to/system /path/to/rom
+```
+
+Development
+
+- Follow the libretro API (`libretro.h`) when modifying the core.
+- Prefer `libretro-common` for portability where possible.
 
 Contributing
-- Issues and pull requests are welcome.
-- Please write commit messages in English.
 
-See `README.ja.md` for the Japanese README.
-# Libretro Hook
-
-## EN
-
-Libretro Hook is a libretro core that runs an arbitrary script before a game starts. It can be used to perform preparatory tasks such as changing configuration or launching a separate frontend with a selected core.
-
-A sample script is provided that prioritizes loading per-game overlays for Mahjong arcade titles in MAME/FBNeo.
-
-## Ref
-
-[RetroArch Mahjong Overlay](https://github.com/osobaudonmen/retroarch_mahjong_overlays)
-
-## Downloads
-
-- Artifacts from master pushes:
-  - CI runs on pushes to `master`. Build artifacts are uploaded as workflow artifacts.
-  - To download the latest artifact produced by a `master` push, go to the repository's GitHub Actions page, select the most recent `Build and Package Release (Linux + Windows)` run, then open the "Artifacts" panel and download `libretro-hook-release-linux` or `libretro-hook-release-windows`.
-
-- GitHub Releases (tagged):
-  - When a tag like `v0.1` is pushed, the workflow creates a GitHub Release and attaches per-platform ZIP files.
-  - Go to the repository's Releases page (`https://github.com/osobaudonmen/libretro-hook/releases`) and download the attached ZIP for the desired platform.
-
-(See `README.ja.md` for Japanese.)
+Issues and pull requests are welcome. Please write commit messages in English.
