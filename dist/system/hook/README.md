@@ -20,6 +20,7 @@
 
 ## 確認するポイント
 
-- `befre_load.sh /home/user/.config/retroarch/system /mnt/d/files/roms/rebuild/fbneo/1942.7z`のように、第一引数はRetroArchのsystemディレクトリ、第二引数はROMパスの絶対パスで渡される。
+- `before_load.sh /home/user/.config/retroarch/system /mnt/d/files/roms/rebuild/fbneo/1942.7z`のように、第一引数はRetroArchのsystemディレクトリ、第二引数はROMパスの絶対パスで渡される。
+- スクリプトは最後に`<core:mame_libretro.so>`のような形式でコア名を出力する必要がある。
 - `<RETRO_ARCH_HOME>/system/hook/before_load.(sh|bat)`に設置される想定で`<RETRO_ARCH_HOME>/config/<CORE_NAME>/<GAME_NAME>.cfg`で出力される。
 - `<RETRO_ARCH_HOME>/config/<CORE_NAME>/<GAME_NAME>.cfg`内の`input_overlay`は`<RETRO_ARCH_HOME>/overlays/mahjong/mahjong_<GAME_NAME>.cfg`のように絶対パスになる。

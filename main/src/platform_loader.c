@@ -284,7 +284,7 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
         close(stdout_pipe[1]);
         close(stderr_pipe[1]);
 
-        execl(script_path, script_path, rom_path, (char *)NULL);
+        execl(script_path, script_path, system_dir, rom_path, (char *)NULL);
         _exit(127);
     } else if (pid > 0) {
         /* Parent process */
@@ -343,6 +343,12 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
     STARTUPINFOA si;
     PROCESS_INFORMATION pi;
 
+    const char *system_dir = hook_get_system_directory();
+    if (!system_dir) {
+        log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get system directory\n");
+        return -1;
+    }
+
     sa.nLength = sizeof(SECURITY_ATTRIBUTES);
     sa.bInheritHandle = TRUE;
     sa.lpSecurityDescriptor = NULL;
@@ -359,7 +365,7 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
     si.dwFlags |= STARTF_USESTDHANDLES;
 
     char command[MAX_COMMAND_SIZE];
-    snprintf(command, sizeof(command), "\"%s\" \"%s\"", script_path, rom_path);
+    snprintf(command, sizeof(command), "\"%s\" \"%s\" \"%s\"", script_path, system_dir, rom_path);
 
     if (CreateProcessA(NULL, command, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
         CloseHandle(stdout_write);
@@ -427,8 +433,14 @@ void platform_launch_retroarch_and_exit(const char *core_filename, const char *r
 #elif defined(__ANDROID__)
 int platform_run_script_with_output(const char *script_path, const char *rom_path, char **output, char **error) {
     /* Android implementation with limited functionality */
+    const char *system_dir = hook_get_system_directory();
+    if (!system_dir) {
+        log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get system directory\n");
+        return -1;
+    }
+
     char command[MAX_COMMAND_SIZE];
-    snprintf(command, sizeof(command), "%s '%s'", script_path, rom_path);
+    snprintf(command, sizeof(command), "%s '%s' '%s'", script_path, system_dir, rom_path);
 
     FILE *fp = popen(command, "r");
     if (fp) {

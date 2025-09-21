@@ -8,39 +8,37 @@
 # RETROARCH_OVERLAY_DIR="/custom/path/to/overlays"
 
 # Check arguments
-if [ $# -ne 3 ]; then
-    echo "Usage: $0 <system_dir> <core_path> <rom_path>"
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <system_dir> <rom_path>"
     exit 1
 fi
 
 SYSTEM_DIR="$1"
-CORE_PATH="$2"
-ROM_PATH="$3"
-
-# Extract core name from core path
-CORE_BASENAME=$(basename "$CORE_PATH")
-CORE_NAME="${CORE_BASENAME%_libretro*}"
-
-# Determine system name based on core name
-case "$CORE_NAME" in
-    "fbneo"|"fbneo2012")
-        SYSTEM_NAME="FinalBurn Neo"
-        ;;
-    "mame"|"mame2003"|"mame2010")
-        SYSTEM_NAME="MAME"
-        ;;
-    *)
-        # Default system name based on core name
-        SYSTEM_NAME="$CORE_NAME"
-        ;;
-esac
+ROM_PATH="$2"
 
 # Extract game name from ROM path (remove extension and path)
 ROM_BASENAME=$(basename "$ROM_PATH")
 GAME_NAME="${ROM_BASENAME%.*}"
 
-# System directory is now provided as argument
-# But still allow override via environment variable
+# Determine core based on ROM file extension or game name
+ROM_EXT="${ROM_PATH##*.}"
+
+# Default core selection logic - modify as needed
+case "$ROM_EXT" in
+    "zip"|"7z")
+        # Assume MAME for compressed archives
+        CORE_NAME="mame_libretro.so"
+        SYSTEM_NAME="MAME"
+        ;;
+    *)
+        # Default to MAME
+        CORE_NAME="mame_libretro.so"
+        SYSTEM_NAME="MAME"
+        ;;
+esac
+
+# System directory is provided as first argument
+# Allow override via environment variable if needed
 if [ -n "$SYSTEM_DIR_OVERRIDE" ]; then
     SYSTEM_DIR="$SYSTEM_DIR_OVERRIDE"
 fi
@@ -79,3 +77,6 @@ EOF
 echo "Created overlay configuration: $CONFIG_FILE"
 echo "System: $SYSTEM_NAME"
 echo "Overlay path: $OVERLAY_PATH"
+
+# Output core information for libretro-hook
+echo "<core:$CORE_NAME>"

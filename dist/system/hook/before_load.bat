@@ -7,41 +7,37 @@ REM set RETROARCH_CONFIG_DIR=C:\custom\path\to\config
 REM set RETROARCH_OVERLAY_DIR=C:\custom\path\to\overlays
 
 REM Check arguments
-if "%~3"=="" (
-    echo Usage: %0 ^<system_dir^> ^<core_path^> ^<rom_path^>
+if "%~2"=="" (
+    echo Usage: %0 ^<system_dir^> ^<rom_path^>
     exit /b 1
 )
 
 set SYSTEM_DIR=%~1
-set CORE_PATH=%~2
-set ROM_PATH=%~3
-
-REM Extract core name from core path
-for %%i in ("%CORE_PATH%") do set CORE_BASENAME=%%~ni
-set CORE_NAME=%CORE_BASENAME:_libretro=%
-
-REM Determine system name based on core name
-if "%CORE_NAME%"=="fbneo" (
-    set SYSTEM_NAME=FinalBurn Neo
-) else if "%CORE_NAME%"=="fbneo2012" (
-    set SYSTEM_NAME=FinalBurn Neo
-) else if "%CORE_NAME%"=="mame" (
-    set SYSTEM_NAME=MAME
-) else if "%CORE_NAME%"=="mame2003" (
-    set SYSTEM_NAME=MAME
-) else if "%CORE_NAME%"=="mame2010" (
-    set SYSTEM_NAME=MAME
-) else (
-    REM Default system name based on core name
-    set SYSTEM_NAME=%CORE_NAME%
-)
+set ROM_PATH=%~2
 
 REM Extract game name from ROM path (remove extension and path)
 for %%i in ("%ROM_PATH%") do set ROM_BASENAME=%%~ni
 set GAME_NAME=%ROM_BASENAME%
 
-REM System directory is now provided as argument
-REM But still allow override via environment variable
+REM Get file extension
+for %%i in ("%ROM_PATH%") do set ROM_EXT=%%~xi
+set ROM_EXT=%ROM_EXT:~1%
+
+REM Default core selection logic - modify as needed
+if "%ROM_EXT%"=="zip" (
+    set CORE_NAME=mame_libretro.dll
+    set SYSTEM_NAME=MAME
+) else if "%ROM_EXT%"=="7z" (
+    set CORE_NAME=mame_libretro.dll
+    set SYSTEM_NAME=MAME
+) else (
+    REM Default to MAME
+    set CORE_NAME=mame_libretro.dll
+    set SYSTEM_NAME=MAME
+)
+
+REM System directory is provided as first argument
+REM Allow override via environment variable if needed
 if not "%SYSTEM_DIR_OVERRIDE%"=="" (
     set SYSTEM_DIR=%SYSTEM_DIR_OVERRIDE%
 )
@@ -80,3 +76,6 @@ echo input_overlay_enable = "true" >> "%CONFIG_FILE%"
 echo Created overlay configuration: %CONFIG_FILE%
 echo System: %SYSTEM_NAME%
 echo Overlay path: %OVERLAY_PATH%
+
+REM Output core information for libretro-hook
+echo ^<core:%CORE_NAME%^>
