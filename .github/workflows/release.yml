@@ -50,7 +50,7 @@ jobs:
       - name: Collect artifacts (Linux)
         if: runner.os == 'Linux'
         run: |
-          mkdir -p dist/release/cores/unix
+          mkdir -p dist/release/cores
           cp main/generated/unix/hook_libretro.so dist/release/cores/ || true
           mkdir -p dist/release/system/hook
           cp -r main/scripts/* dist/release/system/hook/ || true
@@ -76,7 +76,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path dist\release\cores\wincross64 | Out-Null
+          New-Item -ItemType Directory -Force -Path dist\release\cores | Out-Null
           Copy-Item -Path main\build\hook_libretro.dll -Destination dist\release\cores\ -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Force -Path dist\release\system\hook | Out-Null
           Copy-Item -Path main\scripts\* -Destination dist\release\system\hook\ -Recurse -ErrorAction SilentlyContinue
