@@ -1,26 +1,20 @@
 
-
 # Libretro Hook
 
 [日本語](README.ja.md)
 
 ## Overview
 
-`libretro-hook` is a libretro core for RetroArch that runs a script before starting a game.<br>
-The included sample scripts automatically load overlays for MAME/FBNeo used by the RetroArch Mahjong overlays project: https://github.com/osobaudonmen/retroarch_mahjong_overlays
+`libretro-hook` is a core for RetroArch that can execute arbitrary scripts before starting a game.<br>
+The included sample scripts automatically load RetroArch mahjong overlays for MAME/FBNeo ([retroarch_mahjong_overlays](https://github.com/osobaudonmen/retroarch_mahjong_overlays)).
 
 ## Downloads
 
-- Artifacts from `master` pushes:
-  - Pushing to `master` triggers CI and uploads workflow artifacts.
-  - Download the artifact named `libretro-hook-release-*` from the corresponding GitHub Actions workflow run page.
-
-- GitHub Releases (tagged):
-  - Pushing a tag (for example `v0.1`) creates a release and attaches platform-specific ZIP archives.
+Download `libretro-hook-release-*` from the corresponding GitHub Actions workflow run page.
 
 ## Installation
 
-Unpack the archive you downloaded and place files into your RetroArch tree as shown below.
+Unpack the downloaded archive and place the files into your RetroArch directory as shown below.
 
 Windows example
 
@@ -38,11 +32,11 @@ Linux example
 <RETROARCH_HOME>/system/hook/before_load.sh
 ```
 
-After copying the files, restart RetroArch or reload cores and verify the behavior.
+After placing the files, restart RetroArch or reload the cores and verify the behavior.
 
 ## Building
 
-Build scripts live in `main/build`. Typical targets:
+Build scripts are located in `main/build`. Typical targets:
 
 - Linux
   - `cd main/build && make linux`
@@ -55,7 +49,7 @@ Artifacts are created under `main/generated/`.
 
 1. Load this core from RetroArch and select a ROM.
 2. The core runs the script `before_load.sh` (Unix) or `before_load.bat` (Windows). The script receives the RetroArch System directory and the full path to the ROM as arguments.
-3. If the script writes a core name to stdout in the format `<core:mame_libretro.so>`, the core specified will be launched with the selected ROM.
-4. If the script does not output a `<core:...>` line, the script's stdout and stderr are shown on the game screen.
+3. If the script outputs a core name in the format `<core:mame_libretro.so>` to stdout, the specified core will be launched with the selected ROM.
+4. If the above format is not output, the script's stdout and stderr are displayed on the game screen.
 
 
