@@ -6,7 +6,7 @@
 ## 概要
 
 libretro-hook は、ゲーム開始前にスクリプトを実行できるRetroArch用のコアです。<br>
-付属のサンプルスクリプトは MAME/FBNeo の麻雀タイトル向けオーバーレイの自動読み込みを行います。
+付属のサンプルスクリプトは MAME/FBNeo の [RetroArch用麻雀オーバーレイ](https://github.com/osobaudonmen/retroarch_mahjong_overlays) の自動読み込みを行います。
 
 ## ダウンロード
 
@@ -54,5 +54,5 @@ Linux の例
 
 1. RetroArch から本コアをロードし、ROM を指定します。
 2. コアはスクリプト `before_load.sh`（Unix）または `before_load.bat`（Windows）を実行します。スクリプトには RetroArch の System ディレクトリと ROM のフルパスが引数として渡されます。
-3. スクリプトの標準出力に次の形式でコア名を出力した場合、libretro-hook は `retroarch` を子プロセスとして起動します。<br>`<core:mame_libretro.so>`
+3. スクリプトの標準出力に`<core:mame_libretro.so>`の形式でコア名を出力した場合、そのコアで選択した ROM を起動します。
 4. 上記が出力されない場合、スクリプトの標準出力/標準エラーはゲーム画面に表示されます。
