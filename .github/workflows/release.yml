@@ -37,25 +37,25 @@ jobs:
         if: runner.os == 'Linux'
         working-directory: main/build
         run: |
-          make clean || true
+          make clean platform=unix || true
           make linux
 
       - name: Build (Windows)
         if: runner.os == 'Windows'
         working-directory: main/build
         run: |
-          make clean || true
+          make clean platform=wincross64 || true
           make windows64
 
       - name: Collect artifacts (Linux)
         if: runner.os == 'Linux'
         run: |
           mkdir -p dist/release/cores/unix
-          cp main/generated/unix/hook_libretro.so dist/release/cores/unix/ || true
+          cp main/generated/unix/hook_libretro.so dist/release/cores/ || true
           mkdir -p dist/release/system/hook
           cp -r main/scripts/* dist/release/system/hook/ || true
           mkdir -p dist/release/info
-          cp -r main/external/libretro-core-info/* dist/release/info/ || true
+          cp -r dist/info/hook_libretro.info dist/release/info/ || true
 
       - name: Create ZIP archive (Linux)
         if: runner.os == 'Linux'
@@ -77,11 +77,11 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist\release\cores\wincross64 | Out-Null
-          Copy-Item -Path main\build\hook_libretro.dll -Destination dist\release\cores\wincross64\ -ErrorAction SilentlyContinue
+          Copy-Item -Path main\build\hook_libretro.dll -Destination dist\release\cores\ -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Force -Path dist\release\system\hook | Out-Null
           Copy-Item -Path main\scripts\* -Destination dist\release\system\hook\ -Recurse -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Force -Path dist\release\info | Out-Null
-          Copy-Item -Path main\external\libretro-core-info\* -Destination dist\release\info\ -Recurse -ErrorAction SilentlyContinue
+          Copy-Item -Path dist\info\hook_libretro.info -Destination dist\release\info\ -Recurse -ErrorAction SilentlyContinue
 
       - name: Create ZIP archive (Windows)
         if: runner.os == 'Windows'
