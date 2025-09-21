@@ -1,49 +1,43 @@
+
 # Libretro Hook
 
 [English README](README.md)
 
 ## 概要
 
-libretro-hook は、ゲーム開始前にスクリプトを実行するための RetroArch 用コアです。
-
-
-付属スクリプトは MAME/FBNeo の麻雀タイトル向けにオーバーレイを自動で読み込むサンプルです。
-
-## サポートプラットフォーム
-
-- Linux
-- Windows
+libretro-hook は、ゲーム開始前にスクリプトを実行できるRetroArch用のコアです。
+付属のスクリプトのサンプルは MAME/FBNeo の麻雀タイトル向けオーバーレイの自動読み込みを行います。
 
 ## ダウンロード
 
-- Artifacts from `master` pushes: GitHub Actions のワークフローアーティファクトをダウンロードしてください（例: `libretro-hook-release-linux`）。
-- GitHub Releases: タグ付きリリース（例: `v0.1`）にプラットフォーム別 ZIP が添付されます。
+- Artifacts from `master` pushes:
+  - `master` へ push すると CI が実行され、ワークフローアーティファクトがアップロードされます。
+  - GitHub Actions の該当ワークフロー実行ページから `libretro-hook-release-*` をダウンロードしてください。
+
+- GitHub Releases (タグ付き):
+  - タグ（例: `v0.1`）を push するとリリースが作成され、プラットフォーム別 ZIP が添付されます。
 
 ## インストール
 
-ダウンロードしたアーカイブを解凍し、RetroArch のディレクトリ構成に合わせてファイルを配置してください。
+ダウンロードしたアーカイブを解凍し、以下のように RetroArch のディレクトリへ配置してください。
 
-Windows
+Windows の例
 
-```text
+```
 <RETROARCH_HOME>\cores\hook_libretro.dll
 <RETROARCH_HOME>\info\hook_libretro.info
 <RETROARCH_HOME>\system\hook\before_load.bat
 ```
 
-Linux
+Linux の例
 
-```text
+```
 <RETROARCH_HOME>/cores/hook_libretro.so
 <RETROARCH_HOME>/info/hook_libretro.info
 <RETROARCH_HOME>/system/hook/before_load.sh
 ```
 
-配置後は RetroArch を再起動するか、コアを再読み込みして動作を確認してください。
-
-検証のヒント:
-- RetroArch のログ（`~/.config/retroarch/retroarch.log` など）でスクリプトの出力やエラーを確認する。
-- スクリプトはローカルで引数を与えて実行し、期待した動作を確認してから配置する。
+配置後、RetroArch を再起動するか、コアのリロードを行ってから動作を確認してください。
 
 ## ビルド方法
 
@@ -54,19 +48,12 @@ Linux
 - Windows
   - `cd main/build && make windows64`
 
-ビルド成果物は `main/generated/` 配下に出力されます。
+成果物は `main/generated/` 配下に作成されます。
 
 ## 使い方
 
-1. RetroArch で本コアをロードし、ROM を指定します。
-2. コアは `before_load.sh`（Unix）または `before_load.bat`（Windows）を実行します。スクリプトには RetroArch の System ディレクトリと ROM のフルパスが引数として渡されます。
-3. スクリプトが標準出力に次の形式でコア名を出力した場合、libretro-hook は `retroarch` を子プロセスとして起動します。
-
-```text
-<core:mame_libretro.so>
-```
-
+1. RetroArch から本コアをロードし、ROM を指定します。
+2. コアはスクリプト `before_load.sh`（Unix）または `before_load.bat`（Windows）を実行します。スクリプトには RetroArch の System ディレクトリと ROM のフルパスが引数として渡されます。
+3. スクリプトの標準出力に次の形式でコア名を出力した場合、libretro-hook は `retroarch` を子プロセスとして起動します。
+`<core:mame_libretro.so>`
 4. 上記が出力されない場合、スクリプトの標準出力/標準エラーはゲーム画面に表示されます。
-
-
-
