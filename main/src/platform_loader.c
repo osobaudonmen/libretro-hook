@@ -167,6 +167,8 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
                 memcpy(*output, stdout_buffer, stdout_bytes);
                 (*output)[stdout_bytes] = '\0';
             }
+            /* Log stdout to RetroArch log */
+            log_cb(RETRO_LOG_INFO, "CoreLoader: Script stdout:\n%s", stdout_buffer);
         }
 
         /* Read stderr */
@@ -178,6 +180,8 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
                 memcpy(*error, stderr_buffer, stderr_bytes);
                 (*error)[stderr_bytes] = '\0';
             }
+            /* Log stderr to RetroArch log */
+            log_cb(RETRO_LOG_ERROR, "CoreLoader: Script stderr:\n%s", stderr_buffer);
         }
 
         close(stdout_pipe[0]);
@@ -302,6 +306,8 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
                 memcpy(*output, stdout_buffer, stdout_bytes);
                 (*output)[stdout_bytes] = '\0';
             }
+            /* Log stdout to RetroArch log */
+            log_cb(RETRO_LOG_INFO, "CoreLoader: Script stdout:\n%s", stdout_buffer);
         }
 
         /* Read stderr */
@@ -313,6 +319,8 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
                 memcpy(*error, stderr_buffer, stderr_bytes);
                 (*error)[stderr_bytes] = '\0';
             }
+            /* Log stderr to RetroArch log */
+            log_cb(RETRO_LOG_ERROR, "CoreLoader: Script stderr:\n%s", stderr_buffer);
         }
 
         WaitForSingleObject(pi.hProcess, INFINITE);
@@ -396,6 +404,8 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
                 memcpy(*output, buffer, bytes_read);
                 (*output)[bytes_read] = '\0';
             }
+            /* Log stdout to RetroArch log */
+            log_cb(RETRO_LOG_INFO, "CoreLoader: Script stdout:\n%s", buffer);
         }
 
         int result = pclose(fp);
