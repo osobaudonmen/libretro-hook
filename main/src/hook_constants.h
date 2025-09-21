@@ -9,8 +9,8 @@
 #endif
 
 /* Video constants */
-#define VIDEO_WIDTH 256
-#define VIDEO_HEIGHT 192
+#define VIDEO_WIDTH 640
+#define VIDEO_HEIGHT 480
 #define VIDEO_PIXELS (VIDEO_WIDTH * VIDEO_HEIGHT)
 
 /* Buffer sizes */
