@@ -1,7 +1,7 @@
 
 # Libretro Hook
 
-[English README](README.md)
+[English](README.md)
 
 ## 概要
 
