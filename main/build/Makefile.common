@@ -46,7 +46,6 @@ SOURCES_C     := \
 	$(CORE_DIR)/main/external/libretro-common/vfs/vfs_implementation.c \
 	$(CORE_DIR)/main/src/libretro.c \
 	$(CORE_DIR)/main/src/core_loader.c \
-	$(CORE_DIR)/main/src/core_discovery.c \
 	$(CORE_DIR)/main/src/platform_loader.c \
 	$(CORE_DIR)/main/src/platform_utils.c \
 	$(CORE_DIR)/main/src/graphics_utils.c \

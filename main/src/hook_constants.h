@@ -19,12 +19,4 @@
 #define MAX_SCRIPT_PATH_SIZE 512
 #define MAX_ERROR_MSG_SIZE 512
 
-/* Core options */
-#define MAX_CORE_OPTIONS 10
-#define MAX_CORES_LIST_SIZE 8192
-#define MAX_PATTERNS_LIST_SIZE 1024
-
-/* Default path patterns */
-#define DEFAULT_PATH_PATTERNS "/mame/|/fbneo/|/arcade/"
-
 #endif /* HOOK_CONSTANTS_H */

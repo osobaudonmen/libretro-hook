@@ -10,7 +10,6 @@
 
 #include "libretro.h"
 #include "core_loader.h"
-#include "core_discovery.h"
 #include "platform_utils.h"
 #include "hook_constants.h"
 #include "hook_globals.h"
