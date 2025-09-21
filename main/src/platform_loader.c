@@ -97,13 +97,13 @@ void platform_run_script(const char *script_path, const char *core_path, const c
     if (access(script_path, X_OK) == 0) {
         const char *system_dir = hook_get_system_directory();
         if (!system_dir) {
-            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get system directory\n");
+            log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to get system directory\n");
             return;
         }
 
         int pipefd[2];
         if (pipe(pipefd) == -1) {
-            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to create pipe\n");
+            log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to create pipe\n");
             return;
         }
         pid_t pid = fork();
@@ -119,7 +119,7 @@ void platform_run_script(const char *script_path, const char *core_path, const c
             ssize_t bytes_read;
             while ((bytes_read = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) {
                 buffer[bytes_read] = '\0';
-                log_cb(RETRO_LOG_INFO, "CoreLoader: Script output: %s", buffer);
+                log_cb(RETRO_LOG_INFO, "libretro-hook: Script output: %s", buffer);
             }
             close(pipefd[0]);
             int status;
@@ -131,13 +131,13 @@ void platform_run_script(const char *script_path, const char *core_path, const c
 int platform_run_script_with_output(const char *script_path, const char *rom_path, char **output, char **error) {
     const char *system_dir = hook_get_system_directory();
     if (!system_dir) {
-        log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get system directory\n");
+        log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to get system directory\n");
         return -1;
     }
 
     int stdout_pipe[2], stderr_pipe[2];
     if (pipe(stdout_pipe) == -1 || pipe(stderr_pipe) == -1) {
-        log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to create pipes\n");
+        log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to create pipes\n");
         return -1;
     }
 
@@ -167,8 +167,6 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
                 memcpy(*output, stdout_buffer, stdout_bytes);
                 (*output)[stdout_bytes] = '\0';
             }
-            /* Log stdout to RetroArch log */
-            log_cb(RETRO_LOG_INFO, "CoreLoader: Script stdout:\n%s", stdout_buffer);
         }
 
         /* Read stderr */
@@ -180,8 +178,6 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
                 memcpy(*error, stderr_buffer, stderr_bytes);
                 (*error)[stderr_bytes] = '\0';
             }
-            /* Log stderr to RetroArch log */
-            log_cb(RETRO_LOG_ERROR, "CoreLoader: Script stderr:\n%s", stderr_buffer);
         }
 
         close(stdout_pipe[0]);
@@ -219,7 +215,7 @@ void platform_load_core(const char *core_path, const char *rom_path) {
 
     int ret = snprintf(command, sizeof(command), "retroarch.exe -L \"%s\" \"%s\"", core_path, rom_path);
     if (ret >= sizeof(command)) {
-        log_cb(RETRO_LOG_ERROR, "CoreLoader: Command line too long\n");
+        log_cb(RETRO_LOG_ERROR, "libretro-hook: Command line too long\n");
         return;
     }
 
@@ -228,7 +224,7 @@ void platform_load_core(const char *core_path, const char *rom_path) {
         CloseHandle(pi.hThread);
         cleanup_and_exit();
     } else {
-        log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to start retroarch.exe\n");
+        log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to start retroarch.exe\n");
     }
 }
 
@@ -239,7 +235,7 @@ void platform_run_script(const char *script_path, const char *core_path, const c
 
     const char *system_dir = hook_get_system_directory();
     if (!system_dir) {
-        log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get system directory\n");
+        log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to get system directory\n");
         return;
     }
 
@@ -249,7 +245,7 @@ void platform_run_script(const char *script_path, const char *core_path, const c
 
     int ret = snprintf(command, sizeof(command), "\"%s\" \"%s\" \"%s\"", script_path, system_dir, rom_path);
     if (ret >= sizeof(command)) {
-        log_cb(RETRO_LOG_ERROR, "CoreLoader: Command line too long\n");
+        log_cb(RETRO_LOG_ERROR, "libretro-hook: Command line too long\n");
         return;
     }
 
@@ -258,7 +254,7 @@ void platform_run_script(const char *script_path, const char *core_path, const c
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
     } else {
-        log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to run script\n");
+        log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to run script\n");
     }
 }
 
@@ -271,7 +267,7 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
 
     const char *system_dir = hook_get_system_directory();
     if (!system_dir) {
-        log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get system directory\n");
+        log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to get system directory\n");
         return -1;
     }
 
@@ -306,8 +302,6 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
                 memcpy(*output, stdout_buffer, stdout_bytes);
                 (*output)[stdout_bytes] = '\0';
             }
-            /* Log stdout to RetroArch log */
-            log_cb(RETRO_LOG_INFO, "CoreLoader: Script stdout:\n%s", stdout_buffer);
         }
 
         /* Read stderr */
@@ -319,8 +313,6 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
                 memcpy(*error, stderr_buffer, stderr_bytes);
                 (*error)[stderr_bytes] = '\0';
             }
-            /* Log stderr to RetroArch log */
-            log_cb(RETRO_LOG_ERROR, "CoreLoader: Script stderr:\n%s", stderr_buffer);
         }
 
         WaitForSingleObject(pi.hProcess, INFINITE);
@@ -371,7 +363,7 @@ void platform_load_core(const char *core_path, const char *rom_path) {
 void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
     const char *system_dir = hook_get_system_directory();
     if (!system_dir) {
-        log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get system directory\n");
+        log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to get system directory\n");
         return;
     }
 
@@ -380,14 +372,14 @@ void platform_run_script(const char *script_path, const char *core_path, const c
 
     int result = system(command);
     if (result != 0) {
-        log_cb(RETRO_LOG_ERROR, "CoreLoader: Script execution failed\n");
+        log_cb(RETRO_LOG_ERROR, "libretro-hook: Script execution failed\n");
     }
 }
 
 int platform_run_script_with_output(const char *script_path, const char *rom_path, char **output, char **error) {
     const char *system_dir = hook_get_system_directory();
     if (!system_dir) {
-        log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get system directory\n");
+        log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to get system directory\n");
         return -1;
     }
 
@@ -404,8 +396,6 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
                 memcpy(*output, buffer, bytes_read);
                 (*output)[bytes_read] = '\0';
             }
-            /* Log stdout to RetroArch log */
-            log_cb(RETRO_LOG_INFO, "CoreLoader: Script stdout:\n%s", buffer);
         }
 
         int result = pclose(fp);

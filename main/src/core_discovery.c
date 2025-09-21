@@ -13,8 +13,6 @@ const char* hook_find_matching_core(const char* game_path)
 {
    if (!game_path) return NULL;
 
-   log_cb(RETRO_LOG_INFO, "Finding core for path: %s\n", game_path);
-
    /* Normalize path separators to forward slashes for consistent matching */
    char normalized_path[4096];
    strlcpy(normalized_path, game_path, sizeof(normalized_path));
@@ -36,7 +34,7 @@ const char* hook_find_matching_core(const char* game_path)
 
            /* Check if pattern is set and matches */
            if (strlen(var_pattern.value) > 0 && strstr(normalized_path, var_pattern.value)) {
-               log_cb(RETRO_LOG_INFO, "Pattern '%s' matches, selected core: %s\n",
+               log_cb(RETRO_LOG_INFO, "libretro-hook: Pattern '%s' matches, selected core: %s\n",
                       var_pattern.value, var_core.value);
 
                /* Return core if not "none" */
@@ -58,7 +56,6 @@ void hook_discover_available_cores(char* cores_list, size_t cores_list_size)
 
    const char *path = NULL;
    if (environ_cb(RETRO_ENVIRONMENT_GET_LIBRETRO_PATH, &path) && path) {
-      log_cb(RETRO_LOG_INFO, "Core path: %s\n", path);
       char cores_dir[4096];
       strlcpy(cores_dir, path, sizeof(cores_dir));
       path_basedir(cores_dir);
@@ -70,7 +67,6 @@ void hook_discover_available_cores(char* cores_list, size_t cores_list_size)
                     const char *name = retro_dirent_get_name(rdir);
                     const char *ext = path_get_extension(name);
                     if (strcmp(ext, "so") == 0 || strcmp(ext, "dll") == 0 || strcmp(ext, "dylib") == 0) {
-                        log_cb(RETRO_LOG_INFO, "Found core: %s\n", name);
                         if (strlen(cores_list) + strlen(name) + 2 < cores_list_size) {
                             strlcat(cores_list, "|", cores_list_size);
                             strlcat(cores_list, name, cores_list_size);
@@ -118,7 +114,6 @@ void hook_load_path_patterns(char* patterns_list, size_t patterns_list_size)
       strlcpy(patterns_list, DEFAULT_PATH_PATTERNS, patterns_list_size);
       return;
    }
-   log_cb(RETRO_LOG_INFO, "Loading path patterns from: %s\n", patterns_path);
 
    char line[512];
    while (filestream_gets(f, line, sizeof(line))) {
