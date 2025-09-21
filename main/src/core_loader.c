@@ -13,6 +13,12 @@ void hook_execute_before_load_script(const char *rom_path)
 {
     const char* script_path = hook_get_script_path("before_load");
     if (script_path) {
+        /* Log the fact we're executing the script and the arguments passed */
+        const char *system_dir = hook_get_system_directory();
+        log_cb(RETRO_LOG_INFO, "[libretro-hook] Executing script: %s\n", script_path);
+        log_cb(RETRO_LOG_INFO, "[libretro-hook] Script args: system_dir='%s' rom_path='%s'\n",
+               system_dir ? system_dir : "(null)", rom_path ? rom_path : "(null)");
+
         char *script_output = NULL;
         char *script_error = NULL;
         int exit_code = platform_run_script_with_output(script_path, rom_path, &script_output, &script_error);
