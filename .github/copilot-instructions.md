@@ -52,9 +52,3 @@
 
 - dist/release以下に配布用のバイナリと必要なファイルが配置されます。
 - `packages.sh`で配布用のファイル一式を生成します。
-- 生成時に`release/`は、一旦クリアしてください
-- Linux, Windows, Androidのコアファイルはrelease向けでソースを再ビルドしてください
-- `dist/release/cores/`以下にプラットフォーム別のディレクトリを作成し、各プラットフォーム用のバイナリを配置してください
-- `dist/info/`をコアのメタ情報として含めてください
-- `dist/system/hook/`をコアが使用する外部ファイルとして含めてください
-- `dist/system/hook/before_run.sh`を変換して`dist/system/hook/before_run.bat`をWindows用に生成してください
