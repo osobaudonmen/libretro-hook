@@ -4,7 +4,8 @@
 #include "libretro.h"
 
 /* Core discovery and matching functionality */
-const char* hook_find_matching_core(const char* game_path);
+#define CORE_DISCOVERY_H
+
 void hook_discover_available_cores(char* cores_list, size_t cores_list_size);
 void hook_load_path_patterns(char* patterns_list, size_t patterns_list_size);
 

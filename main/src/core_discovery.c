@@ -9,45 +9,6 @@
 #include <compat/strl.h>
 #include <retro_assert.h>
 
-const char* hook_find_matching_core(const char* game_path)
-{
-   if (!game_path) return NULL;
-
-   /* Normalize path separators to forward slashes for consistent matching */
-   char normalized_path[4096];
-   strlcpy(normalized_path, game_path, sizeof(normalized_path));
-   for (char *p = normalized_path; *p; p++) {
-       if (*p == '\\') *p = '/';
-   }
-
-   /* Check each pattern and return matching core */
-   for (int i = 1; i <= 10; i++) {
-       char pattern_key[64], core_key[64];
-       snprintf(pattern_key, sizeof(pattern_key), "libretro_hook_path_pattern_%d", i);
-       snprintf(core_key, sizeof(core_key), "libretro_hook_core_select_%d", i);
-
-       struct retro_variable var_pattern = { pattern_key, NULL };
-       struct retro_variable var_core = { core_key, NULL };
-
-       if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var_pattern) && var_pattern.value &&
-           environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var_core) && var_core.value) {
-
-           /* Check if pattern is set and matches */
-           if (strlen(var_pattern.value) > 0 && strstr(normalized_path, var_pattern.value)) {
-               log_cb(RETRO_LOG_INFO, "libretro-hook: Pattern '%s' matches, selected core: %s\n",
-                      var_pattern.value, var_core.value);
-
-               /* Return core if not "none" */
-               if (strcmp(var_core.value, "none") != 0) {
-                   return var_core.value;
-               }
-           }
-       }
-   }
-
-   return NULL; /* No matching pattern found */
-}
-
 void hook_discover_available_cores(char* cores_list, size_t cores_list_size)
 {
    if (!cores_list || cores_list_size == 0) return;
