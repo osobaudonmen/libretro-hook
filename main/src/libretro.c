@@ -162,15 +162,8 @@ bool retro_load_game(const struct retro_game_info *info)
 		snprintf(retro_game_path, sizeof(retro_game_path), "%s", info->path);
 		log_cb(RETRO_LOG_INFO, "Loading game: %s\n", retro_game_path);
 
-		/* Find matching core for this path */
-		const char* selected_core = hook_find_matching_core(retro_game_path);
-		if (selected_core) {
-			log_cb(RETRO_LOG_INFO, "Selected core for game: %s\n", selected_core);
-         hook_call_script_before_load(selected_core, retro_game_path);
-         hook_load_core(selected_core, retro_game_path);
-		} else {
-			log_cb(RETRO_LOG_INFO, "No matching core pattern found, using default behavior\n");
-		}
+		/* Execute before_load script and handle result */
+		hook_execute_before_load_script(retro_game_path);
 	}
 
    hook_check_variables();
