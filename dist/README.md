@@ -30,7 +30,7 @@
 - ROMファイル名から拡張子を除いたらゲーム名になります。
 - コアファイルや`CORE_NAME`は`main/external/libretro-core-info/*.info`を参考にして決定します。
   - `.info`ファイルのパスからコアのファイルパスを決定します。例: `mame_libretro.info`ならば`mame_libretro.so`になります。
-  - `.info`ファイルの内容から`CORE_NAME`を決定します。`.info`ファイル内の`corename`がコア名になります。
+  - `.info`ファイルの内容から`CORE_NAME`を決定します。`.info`ファイル内の`corename`が`CORE_NAME`になります。
 - Systemディレクトリは、ゲーム別の設定ファイルを保存する場所を決定するために使用します。多くの場合、`<Systemディレクトリ>/../config/<CORE_NAME>/<ゲーム名>.cfg`がゲーム別の設定ファイルパスになります。
 - 使用するコアが決定した場合には、標準出力に`<core:コアファイル>`の形式で出力します。
 - 使用するコアを判定する方法はROMファイルパスに含まれる文字列で判定します。次に例を示します。
