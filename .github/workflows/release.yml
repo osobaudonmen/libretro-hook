@@ -42,17 +42,11 @@ jobs:
           make clean || true
           make windows64
 
-      - name: Collect artifacts
+      - name: Collect artifacts (Linux)
+        if: runner.os == 'Linux'
         run: |
-          mkdir -p dist/release/cores
-          if [ "${{ runner.os }}" = "Linux" ]; then
-            mkdir -p dist/release/cores/unix
-            cp main/generated/unix/hook_libretro.so dist/release/cores/unix/ || true
-          else
-            mkdir -p dist/release/cores/wincross64
-            cp main/build/hook_libretro.dll dist/release/cores/wincross64/ || true
-          fi
-          # copy scripts and info
+          mkdir -p dist/release/cores/unix
+          cp main/generated/unix/hook_libretro.so dist/release/cores/unix/ || true
           mkdir -p dist/release/system/hook
           cp -r main/scripts/* dist/release/system/hook/ || true
           mkdir -p dist/release/info
@@ -66,6 +60,24 @@ jobs:
           rm -f dist/libretro-hook-release-linux.zip || true
           zip -r dist/libretro-hook-release-linux.zip dist/release
 
+      - name: Upload ZIP artifact (Linux)
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: libretro-hook-release-linux
+          path: dist/libretro-hook-release-linux.zip
+
+      - name: Collect artifacts (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist\release\cores\wincross64 | Out-Null
+          Copy-Item -Path main\build\hook_libretro.dll -Destination dist\release\cores\wincross64\ -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path dist\release\system\hook | Out-Null
+          Copy-Item -Path main\scripts\* -Destination dist\release\system\hook\ -Recurse -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path dist\release\info | Out-Null
+          Copy-Item -Path main\external\libretro-core-info\* -Destination dist\release\info\ -Recurse -ErrorAction SilentlyContinue
+
       - name: Create ZIP archive (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -73,13 +85,12 @@ jobs:
           Remove-Item -Path dist\libretro-hook-release-windows.zip -ErrorAction SilentlyContinue
           Compress-Archive -Path dist\release\* -DestinationPath dist\libretro-hook-release-windows.zip -Force
 
-      - name: Upload ZIP artifact (per-OS)
+      - name: Upload ZIP artifact (Windows)
+        if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
-          name: libretro-hook-release-${{ runner.os }}
-          path: |
-            dist/libretro-hook-release-linux.zip
-            dist/libretro-hook-release-windows.zip
+          name: libretro-hook-release-windows
+          path: dist/libretro-hook-release-windows.zip
 
   create-release:
     needs: build-matrix
