@@ -19,51 +19,37 @@ REM Extract game name from ROM path (remove extension and path)
 for %%i in ("%ROM_PATH%") do set ROM_BASENAME=%%~ni
 set GAME_NAME=%ROM_BASENAME%
 
-REM Determine core based on ROM file path (primary method) and extension (fallback)
-REM Check ROM path for core hints first
+REM Determine core based on ROM file path
 echo %ROM_PATH% | findstr /i "\\mame\\" >nul
 if %errorlevel%==0 (
-    set CORE_NAME=mame_libretro.dll
-    set SYSTEM_NAME=MAME
+    set CORE_FILE=mame_libretro.dll
+    set CORE_NAME=MAME
     goto core_determined
 )
 
 echo %ROM_PATH% | findstr /i "/mame/" >nul
 if %errorlevel%==0 (
-    set CORE_NAME=mame_libretro.dll
-    set SYSTEM_NAME=MAME
+    set CORE_FILE=mame_libretro.dll
+    set CORE_NAME=MAME
     goto core_determined
 )
 
 echo %ROM_PATH% | findstr /i "\\fbneo\\" >nul
 if %errorlevel%==0 (
-    set CORE_NAME=fbneo_libretro.dll
-    set SYSTEM_NAME=FinalBurn Neo
+    set CORE_FILE=fbneo_libretro.dll
+    set CORE_NAME=FinalBurn Neo
     goto core_determined
 )
 
 echo %ROM_PATH% | findstr /i "/fbneo/" >nul
 if %errorlevel%==0 (
-    set CORE_NAME=fbneo_libretro.dll
-    set SYSTEM_NAME=FinalBurn Neo
+    set CORE_FILE=fbneo_libretro.dll
+    set CORE_NAME=FinalBurn Neo
     goto core_determined
 )
 
-REM Fallback to extension-based detection
-for %%i in ("%ROM_PATH%") do set ROM_EXT=%%~xi
-set ROM_EXT=%ROM_EXT:~1%
-
-if "%ROM_EXT%"=="zip" (
-    set CORE_NAME=mame_libretro.dll
-    set SYSTEM_NAME=MAME
-) else if "%ROM_EXT%"=="7z" (
-    set CORE_NAME=mame_libretro.dll
-    set SYSTEM_NAME=MAME
-) else (
-    REM Default to MAME
-    set CORE_NAME=mame_libretro.dll
-    set SYSTEM_NAME=MAME
-)
+REM No core determined - exit without outputting core file
+exit /b 0
 
 :core_determined
 
@@ -82,26 +68,18 @@ if "%RETROARCH_OVERLAY_DIR%"=="" (
 )
 
 REM Create config directory if it doesn't exist
-if not exist "%RETROARCH_CONFIG_DIR%\%SYSTEM_NAME%" (
-    mkdir "%RETROARCH_CONFIG_DIR%\%SYSTEM_NAME%"
+if not exist "%RETROARCH_CONFIG_DIR%\%CORE_NAME%" (
+    mkdir "%RETROARCH_CONFIG_DIR%\%CORE_NAME%"
 )
 
-REM Determine overlay path based on game name
-REM Use game name directly as overlay name
-set OVERLAY_NAME=%GAME_NAME%
-
 REM Create game-specific config file
-set CONFIG_FILE=%RETROARCH_CONFIG_DIR%\%SYSTEM_NAME%\%GAME_NAME%.cfg
+set CONFIG_FILE=%RETROARCH_CONFIG_DIR%\%CORE_NAME%\%GAME_NAME%.cfg
 REM Convert to absolute path for overlay (absolute path)
-for %%i in ("%RETROARCH_OVERLAY_DIR%\mahjong\mahjong_%OVERLAY_NAME%.cfg") do set OVERLAY_PATH=%%~fi
+for %%i in ("%RETROARCH_OVERLAY_DIR%\mahjong\mahjong_%GAME_NAME%.cfg") do set OVERLAY_PATH=%%~fi
 
 echo # Auto-generated overlay configuration for %GAME_NAME% > "%CONFIG_FILE%"
 echo input_overlay = "%OVERLAY_PATH%" >> "%CONFIG_FILE%"
 echo input_overlay_enable = "true" >> "%CONFIG_FILE%"
 
-echo Created overlay configuration: %CONFIG_FILE%
-echo System: %SYSTEM_NAME%
-echo Overlay path: %OVERLAY_PATH%
-
 REM Output core information for libretro-hook
-echo ^<core:%CORE_NAME%^>
+echo ^<core:%CORE_FILE%^>

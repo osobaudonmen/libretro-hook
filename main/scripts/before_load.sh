@@ -20,29 +20,16 @@ ROM_PATH="$2"
 ROM_BASENAME=$(basename "$ROM_PATH")
 GAME_NAME="${ROM_BASENAME%.*}"
 
-# Determine core based on ROM file path (primary method) and extension (fallback)
-# Check ROM path for core hints first
+# Determine core based on ROM file path
 if echo "$ROM_PATH" | grep -q "/mame/\|\\\\mame\\\\"; then
-    CORE_NAME="mame_libretro.so"
-    SYSTEM_NAME="MAME"
+    CORE_FILE="mame_libretro.so"
+    CORE_NAME="MAME"
 elif echo "$ROM_PATH" | grep -q "/fbneo/\|\\\\fbneo\\\\"; then
-    CORE_NAME="fbneo_libretro.so"
-    SYSTEM_NAME="FinalBurn Neo"
+    CORE_FILE="fbneo_libretro.so"
+    CORE_NAME="FinalBurn Neo"
 else
-    # Fallback to extension-based detection
-    ROM_EXT="${ROM_PATH##*.}"
-    case "$ROM_EXT" in
-        "zip"|"7z")
-            # Default to MAME for compressed archives
-            CORE_NAME="mame_libretro.so"
-            SYSTEM_NAME="MAME"
-            ;;
-        *)
-            # Default to MAME
-            CORE_NAME="mame_libretro.so"
-            SYSTEM_NAME="MAME"
-            ;;
-    esac
+    # No core determined - exit without outputting core file
+    exit 0
 fi
 
 # Determine RetroArch home directory from system directory
@@ -60,15 +47,11 @@ if [ -z "$RETROARCH_OVERLAY_DIR" ]; then
 fi
 
 # Create config directory if it doesn't exist
-mkdir -p "$RETROARCH_CONFIG_DIR/$SYSTEM_NAME"
-
-# Determine overlay path based on game name
-# Use game name directly as overlay name
-OVERLAY_NAME="$GAME_NAME"
+mkdir -p "$RETROARCH_CONFIG_DIR/$CORE_NAME"
 
 # Create game-specific config file (absolute path)
-CONFIG_FILE="$RETROARCH_CONFIG_DIR/$SYSTEM_NAME/${GAME_NAME}.cfg"
-OVERLAY_PATH="$RETROARCH_OVERLAY_DIR/mahjong/mahjong_${OVERLAY_NAME}.cfg"
+CONFIG_FILE="$RETROARCH_CONFIG_DIR/$CORE_NAME/${GAME_NAME}.cfg"
+OVERLAY_PATH="$RETROARCH_OVERLAY_DIR/mahjong/mahjong_${GAME_NAME}.cfg"
 
 cat > "$CONFIG_FILE" << EOF
 # Auto-generated overlay configuration for $GAME_NAME
@@ -76,9 +59,5 @@ input_overlay = "$OVERLAY_PATH"
 input_overlay_enable = "true"
 EOF
 
-echo "Created overlay configuration: $CONFIG_FILE"
-echo "System: $SYSTEM_NAME"
-echo "Overlay path: $OVERLAY_PATH"
-
 # Output core information for libretro-hook
-echo "<core:$CORE_NAME>"
+echo "<core:$CORE_FILE>"
