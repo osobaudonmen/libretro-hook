@@ -1,0 +1,40 @@
+name: Build and Package Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential git
+
+      - name: Build for Linux (unix)
+        working-directory: main/build
+        run: |
+          make clean || true
+          make linux
+
+      - name: Package release files
+        run: |
+          mkdir -p dist/release/unix
+          cp main/generated/unix/hook_libretro.so dist/release/unix/ || true
+          # Optionally include scripts and licenses
+          cp -r scripts dist/release/ || true
+          cp README.md dist/release/ || true
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libretro-hook-release
+          path: dist/release
