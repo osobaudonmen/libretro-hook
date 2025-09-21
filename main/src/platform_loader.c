@@ -82,52 +82,6 @@ void platform_display_script_info(const char *rom_path, const char *output, cons
 
 #if defined(__unix__) && !defined(__ANDROID__)
 
-void platform_load_core(const char *core_path, const char *rom_path) {
-    pid_t pid = fork();
-    if (pid == 0) {
-        execl("/usr/bin/retroarch", "retroarch", "-L", core_path, rom_path, (char *)NULL);
-        execlp("retroarch", "retroarch", "-L", core_path, rom_path, (char *)NULL);
-        _exit(127);
-    } else if (pid > 0) {
-        cleanup_and_exit();
-    }
-}
-
-void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
-    if (access(script_path, X_OK) == 0) {
-        const char *system_dir = hook_get_system_directory();
-        if (!system_dir) {
-            log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to get system directory\n");
-            return;
-        }
-
-        int pipefd[2];
-        if (pipe(pipefd) == -1) {
-            log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to create pipe\n");
-            return;
-        }
-        pid_t pid = fork();
-        if (pid == 0) {
-            close(pipefd[0]);
-            dup2(pipefd[1], STDOUT_FILENO);
-            close(pipefd[1]);
-            execl(script_path, script_path, system_dir, rom_path, (char *)NULL);
-            _exit(127);
-        } else if (pid > 0) {
-            close(pipefd[1]);
-            char buffer[1024];
-            ssize_t bytes_read;
-            while ((bytes_read = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) {
-                buffer[bytes_read] = '\0';
-                log_cb(RETRO_LOG_INFO, "libretro-hook: Script output: %s", buffer);
-            }
-            close(pipefd[0]);
-            int status;
-            waitpid(pid, &status, 0);
-        }
-    }
-}
-
 int platform_run_script_with_output(const char *script_path, const char *rom_path, char **output, char **error) {
     const char *system_dir = hook_get_system_directory();
     if (!system_dir) {
@@ -203,60 +157,6 @@ void platform_launch_retroarch_and_exit(const char *core_filename, const char *r
 }
 
 #elif defined(_WIN32)
-
-void platform_load_core(const char *core_path, const char *rom_path) {
-    char command[MAX_COMMAND_SIZE];
-    STARTUPINFOA si;
-    PROCESS_INFORMATION pi;
-
-    ZeroMemory(&si, sizeof(si));
-    si.cb = sizeof(si);
-    ZeroMemory(&pi, sizeof(pi));
-
-    int ret = snprintf(command, sizeof(command), "retroarch.exe -L \"%s\" \"%s\"", core_path, rom_path);
-    if (ret >= sizeof(command)) {
-        log_cb(RETRO_LOG_ERROR, "libretro-hook: Command line too long\n");
-        return;
-    }
-
-    if (CreateProcessA(NULL, command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
-        CloseHandle(pi.hProcess);
-        CloseHandle(pi.hThread);
-        cleanup_and_exit();
-    } else {
-        log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to start retroarch.exe\n");
-    }
-}
-
-void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
-    char command[MAX_COMMAND_SIZE];
-    STARTUPINFOA si;
-    PROCESS_INFORMATION pi;
-
-    const char *system_dir = hook_get_system_directory();
-    if (!system_dir) {
-        log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to get system directory\n");
-        return;
-    }
-
-    ZeroMemory(&si, sizeof(si));
-    si.cb = sizeof(si);
-    ZeroMemory(&pi, sizeof(pi));
-
-    int ret = snprintf(command, sizeof(command), "\"%s\" \"%s\" \"%s\"", script_path, system_dir, rom_path);
-    if (ret >= sizeof(command)) {
-        log_cb(RETRO_LOG_ERROR, "libretro-hook: Command line too long\n");
-        return;
-    }
-
-    if (CreateProcessA(NULL, command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
-        WaitForSingleObject(pi.hProcess, INFINITE);
-        CloseHandle(pi.hProcess);
-        CloseHandle(pi.hThread);
-    } else {
-        log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to run script\n");
-    }
-}
 
 int platform_run_script_with_output(const char *script_path, const char *rom_path, char **output, char **error) {
     SECURITY_ATTRIBUTES sa;
@@ -354,28 +254,6 @@ void platform_launch_retroarch_and_exit(const char *core_filename, const char *r
 
 #elif defined(__ANDROID__)
 
-void platform_load_core(const char *core_path, const char *rom_path) {
-    log_cb(RETRO_LOG_ERROR, "Android: Core loading not supported\n");
-    platform_display_script_info(rom_path, "Android: Core loading not supported",
-                                "Direct core loading not available on Android", -1);
-}
-
-void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
-    const char *system_dir = hook_get_system_directory();
-    if (!system_dir) {
-        log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to get system directory\n");
-        return;
-    }
-
-    char command[MAX_COMMAND_SIZE];
-    snprintf(command, sizeof(command), "%s '%s' '%s'", script_path, system_dir, rom_path);
-
-    int result = system(command);
-    if (result != 0) {
-        log_cb(RETRO_LOG_ERROR, "libretro-hook: Script execution failed\n");
-    }
-}
-
 int platform_run_script_with_output(const char *script_path, const char *rom_path, char **output, char **error) {
     const char *system_dir = hook_get_system_directory();
     if (!system_dir) {
@@ -414,19 +292,6 @@ void platform_launch_retroarch_and_exit(const char *core_filename, const char *r
 #else
 
 /* Default implementation for unsupported platforms */
-void platform_load_core(const char *core_path, const char *rom_path) {
-    (void)core_path;
-    (void)rom_path;
-    log_cb(RETRO_LOG_ERROR, "Platform: Core loading not supported on this platform\n");
-}
-
-void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
-    (void)script_path;
-    (void)core_path;
-    (void)rom_path;
-    log_cb(RETRO_LOG_ERROR, "Platform: Script execution not supported on this platform\n");
-}
-
 int platform_run_script_with_output(const char *script_path, const char *rom_path, char **output, char **error) {
     (void)script_path;
     (void)rom_path;

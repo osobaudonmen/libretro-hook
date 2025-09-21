@@ -1,10 +1,6 @@
 #ifndef PLATFORM_LOADER_H
 #define PLATFORM_LOADER_H
 
-/* Platform-specific core loading */
-void platform_load_core(const char *core_path, const char *rom_path);
-void platform_run_script(const char *script_path, const char *core_path, const char *rom_path);
-
 /* Enhanced script execution with output capture */
 int platform_run_script_with_output(const char *script_path, const char *rom_path, char **output, char **error);
 char *platform_parse_core_from_output(const char *output);
