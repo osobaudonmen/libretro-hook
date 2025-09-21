@@ -1,4 +1,4 @@
-name: Build and Package Release
+name: Build and Package Release (Linux + Windows)
 
 on:
   push:
@@ -7,33 +7,58 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
+  build-matrix:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up build dependencies
+      - name: Setup build dependencies (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential git
 
-      - name: Build for Linux (unix)
+      - name: Setup build dependencies (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          choco install make -y
+          # Ensure compiler is available on Windows runners (msys2 or visual studio can be used)
+
+      - name: Build (Linux)
+        if: runner.os == 'Linux'
         working-directory: main/build
         run: |
           make clean || true
           make linux
 
-      - name: Package release files
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        working-directory: main/build
         run: |
-          mkdir -p dist/release/unix
-          cp main/generated/unix/hook_libretro.so dist/release/unix/ || true
-          # Optionally include scripts and licenses
-          cp -r scripts dist/release/ || true
-          cp README.md dist/release/ || true
+          make clean || true
+          make windows64
 
-      - name: Upload release artifact
+      - name: Collect artifacts
+        run: |
+          mkdir -p dist/release/cores
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            mkdir -p dist/release/cores/unix
+            cp main/generated/unix/hook_libretro.so dist/release/cores/unix/ || true
+          else
+            mkdir -p dist/release/cores/wincross64
+            cp main/build/hook_libretro.dll dist/release/cores/wincross64/ || true
+          fi
+          # copy scripts and info
+          mkdir -p dist/release/system/hook
+          cp -r main/scripts/* dist/release/system/hook/ || true
+          mkdir -p dist/release/info
+          cp -r main/external/libretro-core-info/* dist/release/info/ || true
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: libretro-hook-release
