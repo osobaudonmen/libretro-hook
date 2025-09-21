@@ -7,18 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void hook_load_core(const char *core_path, const char *rom_path)
-{
-    platform_load_core(core_path, rom_path);
-}
-
-void hook_call_script_before_load(const char *core_path, const char *rom_path)
-{
-    const char* script_path = hook_get_script_path("before_load");
-    if (script_path) {
-        platform_run_script(script_path, core_path, rom_path);
-    }
-}
+/* These functions have been removed as they are unused */
 
 void hook_execute_before_load_script(const char *rom_path)
 {

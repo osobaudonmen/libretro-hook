@@ -22,6 +22,7 @@
 #include <unistd.h>
 #endif
 
+/* Common utility function */
 static void cleanup_and_exit(void) {
     if (frame_buf) {
         free(frame_buf);
@@ -30,7 +31,57 @@ static void cleanup_and_exit(void) {
     exit(0);
 }
 
+/* Common function to parse core from script output */
+char *platform_parse_core_from_output(const char *output) {
+    if (!output) return NULL;
+
+    const char *start = strstr(output, "<core:");
+    if (!start) return NULL;
+
+    start += 6; /* Skip "<core:" */
+    const char *end = strchr(start, '>');
+    if (!end) return NULL;
+
+    size_t len = end - start;
+    if (len == 0) return NULL;
+
+    char *result = malloc(len + 1);
+    if (result) {
+        strncpy(result, start, len);
+        result[len] = '\0';
+    }
+
+    return result;
+}
+
+/* Common function to display script information */
+void platform_display_script_info(const char *rom_path, const char *output, const char *error, int exit_code) {
+    char display_buffer[4096];
+    int offset = 0;
+
+    offset += snprintf(display_buffer + offset, sizeof(display_buffer) - offset,
+                      "ROM: %s\n", rom_path ? rom_path : "NULL");
+
+    offset += snprintf(display_buffer + offset, sizeof(display_buffer) - offset,
+                      "Exit Code: %d\n", exit_code);
+
+    if (output && strlen(output) > 0) {
+        offset += snprintf(display_buffer + offset, sizeof(display_buffer) - offset,
+                          "Output:\n%s\n", output);
+    }
+
+    if (error && strlen(error) > 0) {
+        offset += snprintf(display_buffer + offset, sizeof(display_buffer) - offset,
+                          "Error:\n%s\n", error);
+    }
+
+    /* Store for display in game screen */
+    strncpy(retro_display_messages, display_buffer, sizeof(retro_display_messages) - 1);
+    retro_display_messages[sizeof(retro_display_messages) - 1] = '\0';
+}
+
 #if defined(__unix__) && !defined(__ANDROID__)
+
 void platform_load_core(const char *core_path, const char *rom_path) {
     pid_t pid = fork();
     if (pid == 0) {
@@ -77,190 +128,6 @@ void platform_run_script(const char *script_path, const char *core_path, const c
     }
 }
 
-#elif defined(_WIN32)
-void platform_load_core(const char *core_path, const char *rom_path) {
-    char command[MAX_COMMAND_SIZE];
-    STARTUPINFOA si;
-    PROCESS_INFORMATION pi;
-
-    ZeroMemory(&si, sizeof(si));
-    si.cb = sizeof(si);
-    ZeroMemory(&pi, sizeof(pi));
-
-    int ret = snprintf(command, sizeof(command), "retroarch.exe -L \"%s\" \"%s\"", core_path, rom_path);
-    if (ret >= sizeof(command)) {
-        log_cb(RETRO_LOG_ERROR, "CoreLoader: Command line too long\n");
-        return;
-    }
-
-    if (CreateProcessA(NULL, command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
-        CloseHandle(pi.hProcess);
-        CloseHandle(pi.hThread);
-        cleanup_and_exit();
-    } else {
-        DWORD error = GetLastError();
-        char error_msg[MAX_ERROR_MSG_SIZE];
-        snprintf(error_msg, sizeof(error_msg), "Failed to start retroarch.exe: Error code %lu\nCommand: %s", error, command);
-        log_cb(RETRO_LOG_ERROR, "CoreLoader: Error: %s\n", error_msg);
-    }
-}
-
-void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
-    DWORD attrib = GetFileAttributesA(script_path);
-    if (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY)) {
-        const char *system_dir = hook_get_system_directory();
-        if (!system_dir) {
-            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get system directory\n");
-            return;
-        }
-
-        char command[MAX_COMMAND_SIZE];
-        snprintf(command, sizeof(command), "\"%s\" \"%s\" \"%s\"", script_path, system_dir, rom_path);
-        STARTUPINFOA si;
-        PROCESS_INFORMATION pi;
-        ZeroMemory(&si, sizeof(si));
-        si.cb = sizeof(si);
-        ZeroMemory(&pi, sizeof(pi));
-
-        HANDLE hRead, hWrite;
-        SECURITY_ATTRIBUTES sa;
-        sa.nLength = sizeof(SECURITY_ATTRIBUTES);
-        sa.lpSecurityDescriptor = NULL;
-        sa.bInheritHandle = TRUE;
-        if (!CreatePipe(&hRead, &hWrite, &sa, 0)) {
-            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to create pipe\n");
-            return;
-        }
-        si.hStdOutput = hWrite;
-        si.hStdError = hWrite;
-        si.dwFlags |= STARTF_USESTDHANDLES;
-
-        log_cb(RETRO_LOG_INFO, "CoreLoader: Command: %s\n", command);
-        if (CreateProcessA(NULL, command, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
-            CloseHandle(hWrite);
-            char buffer[1024];
-            DWORD bytes_read;
-            while (ReadFile(hRead, buffer, sizeof(buffer) - 1, &bytes_read, NULL) && bytes_read > 0) {
-                buffer[bytes_read] = '\0';
-                log_cb(RETRO_LOG_INFO, "CoreLoader: Script output: %s", buffer);
-            }
-            CloseHandle(hRead);
-            WaitForSingleObject(pi.hProcess, INFINITE);
-            CloseHandle(pi.hProcess);
-            CloseHandle(pi.hThread);
-            log_cb(RETRO_LOG_INFO, "CoreLoader: Finished to run script\n");
-        } else {
-            DWORD error = GetLastError();
-            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to run script: Error code %lu\n", error);
-        }
-    }
-}
-
-#elif defined(__ANDROID__)
-void platform_load_core(const char *core_path, const char *rom_path) {
-    log_cb(RETRO_LOG_INFO, "CoreLoader: Loading core: %s with ROM: %s\n", core_path, rom_path);
-
-    if (environ_cb) {
-        if (!environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL)) {
-            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to shutdown current core\n");
-            return;
-        }
-        log_cb(RETRO_LOG_INFO, "CoreLoader: Returned control to RetroArch frontend for core: %s, ROM: %s\n", core_path, rom_path);
-        log_cb(RETRO_LOG_INFO, "CoreLoader: Please manually load the core and ROM in RetroArch\n");
-        cleanup_and_exit();
-    } else {
-        log_cb(RETRO_LOG_ERROR, "CoreLoader: Environment callback not available\n");
-    }
-}
-
-void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
-    if (access(script_path, X_OK) == 0) {
-        const char *system_dir = hook_get_system_directory();
-        if (!system_dir) {
-            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get system directory\n");
-            return;
-        }
-
-        char command[MAX_COMMAND_SIZE];
-        snprintf(command, sizeof(command), "%s '%s' '%s'", script_path, system_dir, rom_path);
-        FILE *fp = popen(command, "r");
-        if (fp) {
-            char buffer[1024];
-            while (fgets(buffer, sizeof(buffer), fp)) {
-                log_cb(RETRO_LOG_INFO, "CoreLoader: Script output: %s", buffer);
-            }
-            int result = pclose(fp);
-            if (result != 0) {
-                log_cb(RETRO_LOG_ERROR, "CoreLoader: Script execution failed: %d, command: %s\n", result, command);
-            }
-        } else {
-            log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to run script with popen\n");
-        }
-    }
-}
-
-#else
-void platform_load_core(const char *core_path, const char *rom_path) {
-    (void)core_path;
-    (void)rom_path;
-}
-
-void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
-    (void)script_path;
-    (void)core_path;
-    (void)rom_path;
-}
-#endif
-
-/* Common functions for enhanced script execution */
-char *platform_parse_core_from_output(const char *output) {
-    if (!output) return NULL;
-
-    const char *start = strstr(output, "<core:");
-    if (!start) return NULL;
-
-    start += 6; /* Skip "<core:" */
-    const char *end = strchr(start, '>');
-    if (!end) return NULL;
-
-    size_t len = end - start;
-    if (len == 0) return NULL;
-
-    char *result = malloc(len + 1);
-    if (result) {
-        strncpy(result, start, len);
-        result[len] = '\0';
-    }
-
-    return result;
-}
-
-void platform_display_script_info(const char *rom_path, const char *output, const char *error, int exit_code) {
-    char display_buffer[4096];
-    int offset = 0;
-
-    offset += snprintf(display_buffer + offset, sizeof(display_buffer) - offset,
-                      "ROM: %s\n", rom_path ? rom_path : "NULL");
-
-    offset += snprintf(display_buffer + offset, sizeof(display_buffer) - offset,
-                      "Exit Code: %d\n", exit_code);
-
-    if (output && strlen(output) > 0) {
-        offset += snprintf(display_buffer + offset, sizeof(display_buffer) - offset,
-                          "Output:\n%s\n", output);
-    }
-
-    if (error && strlen(error) > 0) {
-        offset += snprintf(display_buffer + offset, sizeof(display_buffer) - offset,
-                          "Error:\n%s\n", error);
-    }
-
-    /* Store for display in game screen */
-    strncpy(retro_display_messages, display_buffer, sizeof(retro_display_messages) - 1);
-    retro_display_messages[sizeof(retro_display_messages) - 1] = '\0';
-}
-
-#if defined(__unix__) && !defined(__ANDROID__)
 int platform_run_script_with_output(const char *script_path, const char *rom_path, char **output, char **error) {
     const char *system_dir = hook_get_system_directory();
     if (!system_dir) {
@@ -336,6 +203,61 @@ void platform_launch_retroarch_and_exit(const char *core_filename, const char *r
 }
 
 #elif defined(_WIN32)
+
+void platform_load_core(const char *core_path, const char *rom_path) {
+    char command[MAX_COMMAND_SIZE];
+    STARTUPINFOA si;
+    PROCESS_INFORMATION pi;
+
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    ZeroMemory(&pi, sizeof(pi));
+
+    int ret = snprintf(command, sizeof(command), "retroarch.exe -L \"%s\" \"%s\"", core_path, rom_path);
+    if (ret >= sizeof(command)) {
+        log_cb(RETRO_LOG_ERROR, "CoreLoader: Command line too long\n");
+        return;
+    }
+
+    if (CreateProcessA(NULL, command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+        cleanup_and_exit();
+    } else {
+        log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to start retroarch.exe\n");
+    }
+}
+
+void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
+    char command[MAX_COMMAND_SIZE];
+    STARTUPINFOA si;
+    PROCESS_INFORMATION pi;
+
+    const char *system_dir = hook_get_system_directory();
+    if (!system_dir) {
+        log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get system directory\n");
+        return;
+    }
+
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    ZeroMemory(&pi, sizeof(pi));
+
+    int ret = snprintf(command, sizeof(command), "\"%s\" \"%s\" \"%s\"", script_path, system_dir, rom_path);
+    if (ret >= sizeof(command)) {
+        log_cb(RETRO_LOG_ERROR, "CoreLoader: Command line too long\n");
+        return;
+    }
+
+    if (CreateProcessA(NULL, command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+        WaitForSingleObject(pi.hProcess, INFINITE);
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+    } else {
+        log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to run script\n");
+    }
+}
+
 int platform_run_script_with_output(const char *script_path, const char *rom_path, char **output, char **error) {
     SECURITY_ATTRIBUTES sa;
     HANDLE stdout_read, stdout_write;
@@ -431,8 +353,30 @@ void platform_launch_retroarch_and_exit(const char *core_filename, const char *r
 }
 
 #elif defined(__ANDROID__)
+
+void platform_load_core(const char *core_path, const char *rom_path) {
+    log_cb(RETRO_LOG_ERROR, "Android: Core loading not supported\n");
+    platform_display_script_info(rom_path, "Android: Core loading not supported",
+                                "Direct core loading not available on Android", -1);
+}
+
+void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
+    const char *system_dir = hook_get_system_directory();
+    if (!system_dir) {
+        log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get system directory\n");
+        return;
+    }
+
+    char command[MAX_COMMAND_SIZE];
+    snprintf(command, sizeof(command), "%s '%s' '%s'", script_path, system_dir, rom_path);
+
+    int result = system(command);
+    if (result != 0) {
+        log_cb(RETRO_LOG_ERROR, "CoreLoader: Script execution failed\n");
+    }
+}
+
 int platform_run_script_with_output(const char *script_path, const char *rom_path, char **output, char **error) {
-    /* Android implementation with limited functionality */
     const char *system_dir = hook_get_system_directory();
     if (!system_dir) {
         log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get system directory\n");
@@ -462,13 +406,27 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
 }
 
 void platform_launch_retroarch_and_exit(const char *core_filename, const char *rom_path) {
-    /* Android cannot launch child processes easily, fallback to error display */
     log_cb(RETRO_LOG_ERROR, "Android: Cannot launch retroarch as child process\n");
     platform_display_script_info(rom_path, "Android: Cannot launch RetroArch",
                                 "Child process execution not supported on Android", -1);
 }
 
 #else
+
+/* Default implementation for unsupported platforms */
+void platform_load_core(const char *core_path, const char *rom_path) {
+    (void)core_path;
+    (void)rom_path;
+    log_cb(RETRO_LOG_ERROR, "Platform: Core loading not supported on this platform\n");
+}
+
+void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
+    (void)script_path;
+    (void)core_path;
+    (void)rom_path;
+    log_cb(RETRO_LOG_ERROR, "Platform: Script execution not supported on this platform\n");
+}
+
 int platform_run_script_with_output(const char *script_path, const char *rom_path, char **output, char **error) {
     (void)script_path;
     (void)rom_path;
@@ -480,5 +438,7 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
 void platform_launch_retroarch_and_exit(const char *core_filename, const char *rom_path) {
     (void)core_filename;
     (void)rom_path;
+    log_cb(RETRO_LOG_ERROR, "Platform: RetroArch launch not supported on this platform\n");
 }
+
 #endif

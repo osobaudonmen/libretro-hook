@@ -2,8 +2,6 @@
 #define CORE_LOADER_H
 
 /* Core loading functionality */
-void hook_load_core(const char *core_path, const char *rom_path);
-void hook_call_script_before_load(const char *core_path, const char *rom_path);
 void hook_execute_before_load_script(const char *rom_path);
 
 #endif /* CORE_LOADER_H */
