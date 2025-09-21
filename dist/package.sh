@@ -7,7 +7,7 @@ DIST_DIR="$ROOT_DIR/dist"
 REL_DIR="$DIST_DIR/release"
 CORE_DIR="$REL_DIR/cores"
 INFO_DIR="$DIST_DIR/info"
-SYSTEM_HOOK_DIR="$DIST_DIR/system/hook"
+SCRIPTS_DIR="$ROOT_DIR/main/scripts"
 
 # Clear release directory
 rm -rf "$REL_DIR"/*
@@ -45,8 +45,8 @@ if [[ -f "$INFO_DIR/hook_libretro.info" ]]; then
 fi
 
 # Copy system hook files
-if [[ -d "$SYSTEM_HOOK_DIR" ]]; then
-  mkdir -p "$REL_DIR/system/hook"; cp -r "$SYSTEM_HOOK_DIR"/* "$REL_DIR/system/hook/";
+if [[ -d "$SCRIPTS_DIR" ]]; then
+  mkdir -p "$REL_DIR/system/hook"; cp "$SCRIPTS_DIR"/* "$REL_DIR/system/hook/";
 fi
 
 cat <<EOF
