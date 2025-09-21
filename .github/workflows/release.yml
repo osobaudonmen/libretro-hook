@@ -63,18 +63,43 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y zip
-          rm -f dist/libretro-hook-release.zip || true
-          zip -r dist/libretro-hook-release.zip dist/release
+          rm -f dist/libretro-hook-release-linux.zip || true
+          zip -r dist/libretro-hook-release-linux.zip dist/release
 
       - name: Create ZIP archive (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          Remove-Item -Path dist\libretro-hook-release.zip -ErrorAction SilentlyContinue
-          Compress-Archive -Path dist\release\* -DestinationPath dist\libretro-hook-release.zip -Force
+          Remove-Item -Path dist\libretro-hook-release-windows.zip -ErrorAction SilentlyContinue
+          Compress-Archive -Path dist\release\* -DestinationPath dist\libretro-hook-release-windows.zip -Force
 
-      - name: Upload ZIP artifact
+      - name: Upload ZIP artifact (per-OS)
         uses: actions/upload-artifact@v4
         with:
-          name: libretro-hook-release-zip
-          path: dist/libretro-hook-release.zip
+          name: libretro-hook-release-${{ runner.os }}
+          path: |
+            dist/libretro-hook-release-linux.zip
+            dist/libretro-hook-release-windows.zip
+
+  create-release:
+    needs: build-matrix
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: downloaded
+
+      - name: Gather ZIPs into dist/
+        run: |
+          mkdir -p dist
+          find downloaded -type f -name "libretro-hook-release-*.zip" -exec cp {} dist/ \; || true
+
+      - name: Create GitHub Release and upload assets
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          files: dist/libretro-hook-release-*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
