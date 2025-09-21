@@ -1,5 +1,12 @@
 root = true
 
+# Ensure markdown files keep trailing whitespace (some renderers rely on it)
+[*.md]
+trim_trailing_whitespace = false
+
+[README*.md]
+trim_trailing_whitespace = false
+
 [*]
 end_of_line = lf
 insert_final_newline = true
