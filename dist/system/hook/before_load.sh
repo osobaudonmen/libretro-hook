@@ -20,27 +20,29 @@ ROM_PATH="$2"
 ROM_BASENAME=$(basename "$ROM_PATH")
 GAME_NAME="${ROM_BASENAME%.*}"
 
-# Determine core based on ROM file extension or game name
-ROM_EXT="${ROM_PATH##*.}"
-
-# Default core selection logic - modify as needed
-case "$ROM_EXT" in
-    "zip"|"7z")
-        # Assume MAME for compressed archives
-        CORE_NAME="mame_libretro.so"
-        SYSTEM_NAME="MAME"
-        ;;
-    *)
-        # Default to MAME
-        CORE_NAME="mame_libretro.so"
-        SYSTEM_NAME="MAME"
-        ;;
-esac
-
-# System directory is provided as first argument
-# Allow override via environment variable if needed
-if [ -n "$SYSTEM_DIR_OVERRIDE" ]; then
-    SYSTEM_DIR="$SYSTEM_DIR_OVERRIDE"
+# Determine core based on ROM file path (primary method) and extension (fallback)
+# Check ROM path for core hints first
+if echo "$ROM_PATH" | grep -q "/mame/\|\\\\mame\\\\"; then
+    CORE_NAME="mame_libretro.so"
+    SYSTEM_NAME="MAME"
+elif echo "$ROM_PATH" | grep -q "/fbneo/\|\\\\fbneo\\\\"; then
+    CORE_NAME="fbneo_libretro.so"
+    SYSTEM_NAME="FinalBurn Neo"
+else
+    # Fallback to extension-based detection
+    ROM_EXT="${ROM_PATH##*.}"
+    case "$ROM_EXT" in
+        "zip"|"7z")
+            # Default to MAME for compressed archives
+            CORE_NAME="mame_libretro.so"
+            SYSTEM_NAME="MAME"
+            ;;
+        *)
+            # Default to MAME
+            CORE_NAME="mame_libretro.so"
+            SYSTEM_NAME="MAME"
+            ;;
+    esac
 fi
 
 # Determine RetroArch home directory from system directory

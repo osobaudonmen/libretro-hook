@@ -19,11 +19,40 @@ REM Extract game name from ROM path (remove extension and path)
 for %%i in ("%ROM_PATH%") do set ROM_BASENAME=%%~ni
 set GAME_NAME=%ROM_BASENAME%
 
-REM Get file extension
+REM Determine core based on ROM file path (primary method) and extension (fallback)
+REM Check ROM path for core hints first
+echo %ROM_PATH% | findstr /i "\\mame\\" >nul
+if %errorlevel%==0 (
+    set CORE_NAME=mame_libretro.dll
+    set SYSTEM_NAME=MAME
+    goto core_determined
+)
+
+echo %ROM_PATH% | findstr /i "/mame/" >nul
+if %errorlevel%==0 (
+    set CORE_NAME=mame_libretro.dll
+    set SYSTEM_NAME=MAME
+    goto core_determined
+)
+
+echo %ROM_PATH% | findstr /i "\\fbneo\\" >nul
+if %errorlevel%==0 (
+    set CORE_NAME=fbneo_libretro.dll
+    set SYSTEM_NAME=FinalBurn Neo
+    goto core_determined
+)
+
+echo %ROM_PATH% | findstr /i "/fbneo/" >nul
+if %errorlevel%==0 (
+    set CORE_NAME=fbneo_libretro.dll
+    set SYSTEM_NAME=FinalBurn Neo
+    goto core_determined
+)
+
+REM Fallback to extension-based detection
 for %%i in ("%ROM_PATH%") do set ROM_EXT=%%~xi
 set ROM_EXT=%ROM_EXT:~1%
 
-REM Default core selection logic - modify as needed
 if "%ROM_EXT%"=="zip" (
     set CORE_NAME=mame_libretro.dll
     set SYSTEM_NAME=MAME
@@ -36,14 +65,11 @@ if "%ROM_EXT%"=="zip" (
     set SYSTEM_NAME=MAME
 )
 
-REM System directory is provided as first argument
-REM Allow override via environment variable if needed
-if not "%SYSTEM_DIR_OVERRIDE%"=="" (
-    set SYSTEM_DIR=%SYSTEM_DIR_OVERRIDE%
-)
+:core_determined
 
 if "%RETROARCH_HOME_DIR%"=="" (
-    set RETROARCH_HOME_DIR=%SYSTEM_DIR%\..
+    for %%i in ("%SYSTEM_DIR%") do set RETROARCH_HOME_DIR=%%~dpi
+    set RETROARCH_HOME_DIR=%RETROARCH_HOME_DIR:~0,-1%
 )
 
 REM Set config and overlay directories if not set
