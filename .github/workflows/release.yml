@@ -58,8 +58,23 @@ jobs:
           mkdir -p dist/release/info
           cp -r main/external/libretro-core-info/* dist/release/info/ || true
 
-      - name: Upload artifact
+      - name: Create ZIP archive (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zip
+          rm -f dist/libretro-hook-release.zip || true
+          zip -r dist/libretro-hook-release.zip dist/release
+
+      - name: Create ZIP archive (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Remove-Item -Path dist\libretro-hook-release.zip -ErrorAction SilentlyContinue
+          Compress-Archive -Path dist\release\* -DestinationPath dist\libretro-hook-release.zip -Force
+
+      - name: Upload ZIP artifact
         uses: actions/upload-artifact@v4
         with:
-          name: libretro-hook-release
-          path: dist/release
+          name: libretro-hook-release-zip
+          path: dist/libretro-hook-release.zip
