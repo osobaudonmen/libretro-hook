@@ -11,7 +11,6 @@
 #include "libretro.h"
 #include "core_loader.h"
 #include "core_discovery.h"
-#include "core_options.h"
 #include "platform_utils.h"
 #include "hook_constants.h"
 #include "hook_globals.h"
@@ -50,8 +49,6 @@ void retro_init(void)
    {
       snprintf(retro_base_directory, sizeof(retro_base_directory), "SYSTEM_DIRECTORY: %s", dir);
    }
-
-   hook_init_core_options();
 }
 
 void retro_deinit(void)
@@ -143,10 +140,6 @@ void retro_reset(void)
 void retro_run(void)
 {
    hook_render_framebuffer();
-
-   bool updated = false;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
-      hook_check_variables();
 }
 
 bool retro_load_game(const struct retro_game_info *info)
@@ -165,8 +158,6 @@ bool retro_load_game(const struct retro_game_info *info)
 		/* Execute before_load script and handle result */
 		hook_execute_before_load_script(retro_game_path);
 	}
-
-   hook_check_variables();
 
    (void)info;
    return true;
