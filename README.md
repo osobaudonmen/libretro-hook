@@ -1,23 +1,30 @@
-# libretro-hook
 
-[Japanese README](README.ja.md)
 
-Overview
+# Libretro Hook
 
-libretro-hook is a RetroArch core that runs a script before a game starts. The bundled sample script demonstrates automatic overlay loading for Mahjong titles on MAME/FBNeo: https://github.com/osobaudonmen/retroarch_mahjong_overlays
+[日本語](README.ja.md)
 
-Downloads
+## Overview
 
-- Artifacts from `master` pushes: CI uploads workflow artifacts for pushes to `master`. Download the matching `libretro-hook-release-*` artifact from the GitHub Actions run.
-- GitHub Releases (tagged): Pushing a tag (e.g. `v0.1`) creates a Release with platform ZIP files attached.
+`libretro-hook` is a libretro core for RetroArch that runs a script before starting a game.<br>
+The included sample scripts automatically load overlays for MAME/FBNeo used by the RetroArch Mahjong overlays project: https://github.com/osobaudonmen/retroarch_mahjong_overlays
 
-Installation
+## Downloads
 
-Unpack the downloaded archive and place the files into your RetroArch installation. Examples:
+- Artifacts from `master` pushes:
+  - Pushing to `master` triggers CI and uploads workflow artifacts.
+  - Download the artifact named `libretro-hook-release-*` from the corresponding GitHub Actions workflow run page.
+
+- GitHub Releases (tagged):
+  - Pushing a tag (for example `v0.1`) creates a release and attaches platform-specific ZIP archives.
+
+## Installation
+
+Unpack the archive you downloaded and place files into your RetroArch tree as shown below.
 
 Windows example
 
-```text
+```
 <RETROARCH_HOME>\cores\hook_libretro.dll
 <RETROARCH_HOME>\info\hook_libretro.info
 <RETROARCH_HOME>\system\hook\before_load.bat
@@ -25,49 +32,30 @@ Windows example
 
 Linux example
 
-```text
+```
 <RETROARCH_HOME>/cores/hook_libretro.so
 <RETROARCH_HOME>/info/hook_libretro.info
 <RETROARCH_HOME>/system/hook/before_load.sh
 ```
 
-After placing files, restart RetroArch or reload cores and verify operation.
+After copying the files, restart RetroArch or reload cores and verify the behavior.
 
-Build
+## Building
 
-Build scripts are located in `main/build`. Typical targets:
+Build scripts live in `main/build`. Typical targets:
 
-- Linux: `cd main/build && make linux`
-- Windows: `cd main/build && make windows64`
+- Linux
+  - `cd main/build && make linux`
+- Windows
+  - `cd main/build && make windows64`
 
-Build artifacts are written to `main/generated/`.
+Artifacts are created under `main/generated/`.
 
-Usage
+## Usage
 
-1. Load this core in RetroArch and select a ROM.
-2. The core executes `before_load.sh` (Unix) or `before_load.bat` (Windows). The script receives the RetroArch System directory and the ROM full path as arguments.
-3. If the script prints a core name to stdout in the following format, libretro-hook will launch `retroarch` as a child process to run that core with the same ROM:
+1. Load this core from RetroArch and select a ROM.
+2. The core runs the script `before_load.sh` (Unix) or `before_load.bat` (Windows). The script receives the RetroArch System directory and the full path to the ROM as arguments.
+3. If the script writes a core name to stdout in the format `<core:mame_libretro.so>`, the core specified will be launched with the selected ROM.
+4. If the script does not output a `<core:...>` line, the script's stdout and stderr are shown on the game screen.
 
-```text
-<core:mame_libretro.so>
-```
 
-4. If no `<core:...>` output is produced, the script's stdout/stderr will be shown on the game screen.
-
-Verification
-
-- Check RetroArch logs (e.g. `~/.config/retroarch/retroarch.log`) for script output and errors.
-- Test scripts locally before deployment by running:
-
-```bash
-bash scripts/before_load.sh /path/to/system /path/to/rom
-```
-
-Development
-
-- Follow the libretro API (`libretro.h`) when modifying the core.
-- Prefer `libretro-common` for portability where possible.
-
-Contributing
-
-Issues and pull requests are welcome. Please write commit messages in English.
