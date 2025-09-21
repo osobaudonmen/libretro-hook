@@ -25,11 +25,9 @@ retro_environment_t environ_cb;
 retro_video_refresh_t video_cb;
 
 /* Global paths for debugging/logging */
-static char retro_base_directory[MAX_PATH_SIZE];
 static char retro_game_path[MAX_PATH_SIZE];
-static char retro_core_path[MAX_PATH_SIZE];
 
-char retro_display_messages[4096] = "Z[\\]^_`a";
+char retro_display_messages[4096] = "";
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
@@ -43,11 +41,6 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 void retro_init(void)
 {
    frame_buf = (uint8_t*)malloc(VIDEO_PIXELS * sizeof(uint32_t));
-   const char *dir = NULL;
-   if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
-   {
-      snprintf(retro_base_directory, sizeof(retro_base_directory), "SYSTEM_DIRECTORY: %s", dir);
-   }
 }
 
 void retro_deinit(void)
