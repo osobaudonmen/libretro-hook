@@ -144,13 +144,13 @@ bool retro_load_game(const struct retro_game_info *info)
    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
    {
-      log_cb(RETRO_LOG_ERROR, "libretro-hook: XRGB8888 pixel format is not supported.\n");
+      log_cb(RETRO_LOG_ERROR, "[libretro-hook] XRGB8888 pixel format is not supported\n");
       return false;
    }
 
 	if (info != NULL) {
 		snprintf(retro_game_path, sizeof(retro_game_path), "%s", info->path);
-		log_cb(RETRO_LOG_INFO, "libretro-hook: Loading game: %s\n", retro_game_path);
+		log_cb(RETRO_LOG_INFO, "[libretro-hook] Loading game: %s\n", retro_game_path);
 
 		/* Execute before_load script and handle result */
 		hook_execute_before_load_script(retro_game_path);

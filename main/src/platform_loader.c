@@ -85,13 +85,13 @@ void platform_display_script_info(const char *rom_path, const char *output, cons
 int platform_run_script_with_output(const char *script_path, const char *rom_path, char **output, char **error) {
     const char *system_dir = hook_get_system_directory();
     if (!system_dir) {
-        log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to get system directory\n");
+        log_cb(RETRO_LOG_ERROR, "[libretro-hook] Failed to get system directory\n");
         return -1;
     }
 
     int stdout_pipe[2], stderr_pipe[2];
     if (pipe(stdout_pipe) == -1 || pipe(stderr_pipe) == -1) {
-        log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to create pipes\n");
+        log_cb(RETRO_LOG_ERROR, "[libretro-hook] Failed to create pipes\n");
         return -1;
     }
 
@@ -167,7 +167,7 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
 
     const char *system_dir = hook_get_system_directory();
     if (!system_dir) {
-        log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to get system directory\n");
+        log_cb(RETRO_LOG_ERROR, "[libretro-hook] Failed to get system directory\n");
         return -1;
     }
 
@@ -257,7 +257,7 @@ void platform_launch_retroarch_and_exit(const char *core_filename, const char *r
 int platform_run_script_with_output(const char *script_path, const char *rom_path, char **output, char **error) {
     const char *system_dir = hook_get_system_directory();
     if (!system_dir) {
-        log_cb(RETRO_LOG_ERROR, "libretro-hook: Failed to get system directory\n");
+        log_cb(RETRO_LOG_ERROR, "[libretro-hook] Failed to get system directory\n");
         return -1;
     }
 
@@ -284,7 +284,7 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
 }
 
 void platform_launch_retroarch_and_exit(const char *core_filename, const char *rom_path) {
-    log_cb(RETRO_LOG_ERROR, "Android: Cannot launch retroarch as child process\n");
+    log_cb(RETRO_LOG_ERROR, "[libretro-hook] Android: Cannot launch RetroArch as child process\n");
     platform_display_script_info(rom_path, "Android: Cannot launch RetroArch",
                                 "Child process execution not supported on Android", -1);
 }
@@ -303,7 +303,7 @@ int platform_run_script_with_output(const char *script_path, const char *rom_pat
 void platform_launch_retroarch_and_exit(const char *core_filename, const char *rom_path) {
     (void)core_filename;
     (void)rom_path;
-    log_cb(RETRO_LOG_ERROR, "Platform: RetroArch launch not supported on this platform\n");
+    log_cb(RETRO_LOG_ERROR, "[libretro-hook] RetroArch launch not supported on this platform\n");
 }
 
 #endif
