@@ -29,18 +29,12 @@ static void cleanup_and_exit(void) {
     exit(0);
 }
 
-#ifdef __unix__
-#ifndef __ANDROID__
+#if defined(__unix__) && !defined(__ANDROID__)
 void platform_load_core(const char *core_path, const char *rom_path) {
     pid_t pid = fork();
     if (pid == 0) {
-        // まず標準的なインストール場所を試す
         execl("/usr/bin/retroarch", "retroarch", "-L", core_path, rom_path, (char *)NULL);
-
-        // 見つからない場合はPATHから検索
         execlp("retroarch", "retroarch", "-L", core_path, rom_path, (char *)NULL);
-
-        // それでも見つからない場合
         _exit(127);
     } else if (pid > 0) {
         cleanup_and_exit();
@@ -49,7 +43,7 @@ void platform_load_core(const char *core_path, const char *rom_path) {
 
 void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
     if (access(script_path, X_OK) == 0) {
-        const char *system_dir = get_system_directory();
+        const char *system_dir = hook_get_system_directory();
         if (!system_dir) {
             log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get system directory\n");
             return;
@@ -81,10 +75,8 @@ void platform_run_script(const char *script_path, const char *core_path, const c
         }
     }
 }
-#endif
-#endif
 
-#ifdef _WIN32
+#elif defined(_WIN32)
 void platform_load_core(const char *core_path, const char *rom_path) {
     char command[MAX_COMMAND_SIZE];
     STARTUPINFOA si;
@@ -96,11 +88,10 @@ void platform_load_core(const char *core_path, const char *rom_path) {
 
     int ret = snprintf(command, sizeof(command), "retroarch.exe -L \"%s\" \"%s\"", core_path, rom_path);
     if (ret >= sizeof(command)) {
-        MessageBoxA(NULL, "Command line too long", "Core Loader Error", MB_OK | MB_ICONERROR);
+        log_cb(RETRO_LOG_ERROR, "CoreLoader: Command line too long\n");
         return;
     }
 
-    // PATHからretroarch.exeを検索して実行
     if (CreateProcessA(NULL, command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
@@ -116,7 +107,7 @@ void platform_load_core(const char *core_path, const char *rom_path) {
 void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
     DWORD attrib = GetFileAttributesA(script_path);
     if (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY)) {
-        const char *system_dir = get_system_directory();
+        const char *system_dir = hook_get_system_directory();
         if (!system_dir) {
             log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get system directory\n");
             return;
@@ -163,21 +154,16 @@ void platform_run_script(const char *script_path, const char *core_path, const c
         }
     }
 }
-#endif
 
-#ifdef __ANDROID__
+#elif defined(__ANDROID__)
 void platform_load_core(const char *core_path, const char *rom_path) {
     log_cb(RETRO_LOG_INFO, "CoreLoader: Loading core: %s with ROM: %s\n", core_path, rom_path);
 
-    // On Android, we need to return control to RetroArch frontend
-    // The frontend should handle loading the new core and ROM
     if (environ_cb) {
-        // Shutdown the current core to return control to frontend
         if (!environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL)) {
             log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to shutdown current core\n");
             return;
         }
-
         log_cb(RETRO_LOG_INFO, "CoreLoader: Returned control to RetroArch frontend for core: %s, ROM: %s\n", core_path, rom_path);
         log_cb(RETRO_LOG_INFO, "CoreLoader: Please manually load the core and ROM in RetroArch\n");
         cleanup_and_exit();
@@ -188,7 +174,7 @@ void platform_load_core(const char *core_path, const char *rom_path) {
 
 void platform_run_script(const char *script_path, const char *core_path, const char *rom_path) {
     if (access(script_path, X_OK) == 0) {
-        const char *system_dir = get_system_directory();
+        const char *system_dir = hook_get_system_directory();
         if (!system_dir) {
             log_cb(RETRO_LOG_ERROR, "CoreLoader: Failed to get system directory\n");
             return;
@@ -211,11 +197,8 @@ void platform_run_script(const char *script_path, const char *core_path, const c
         }
     }
 }
-#endif
 
-#ifndef __unix__
-#ifndef _WIN32
-#ifndef __ANDROID__
+#else
 void platform_load_core(const char *core_path, const char *rom_path) {
     (void)core_path;
     (void)rom_path;
@@ -226,6 +209,4 @@ void platform_run_script(const char *script_path, const char *core_path, const c
     (void)core_path;
     (void)rom_path;
 }
-#endif
-#endif
 #endif

@@ -49,7 +49,9 @@ SOURCES_C     := \
 	$(CORE_DIR)/main/src/core_discovery.c \
 	$(CORE_DIR)/main/src/core_options.c \
 	$(CORE_DIR)/main/src/platform_loader.c \
-	$(CORE_DIR)/main/src/platform_utils.c
+	$(CORE_DIR)/main/src/platform_utils.c \
+	$(CORE_DIR)/main/src/graphics_utils.c \
+	$(CORE_DIR)/main/src/graphics_font.c
 
 # Add C++ sourcecode files to this
 SOURCES_CXX   :=

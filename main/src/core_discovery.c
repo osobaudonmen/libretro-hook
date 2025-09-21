@@ -9,7 +9,7 @@
 #include <compat/strl.h>
 #include <retro_assert.h>
 
-const char* find_matching_core(const char* game_path)
+const char* hook_find_matching_core(const char* game_path)
 {
    if (!game_path) return NULL;
 
@@ -50,11 +50,10 @@ const char* find_matching_core(const char* game_path)
    return NULL; /* No matching pattern found */
 }
 
-void discover_available_cores(char* cores_list, size_t cores_list_size)
+void hook_discover_available_cores(char* cores_list, size_t cores_list_size)
 {
    if (!cores_list || cores_list_size == 0) return;
 
-   /* Reset cores list */
    strlcpy(cores_list, "none", cores_list_size);
 
    const char *path = NULL;
@@ -72,7 +71,6 @@ void discover_available_cores(char* cores_list, size_t cores_list_size)
                     const char *ext = path_get_extension(name);
                     if (strcmp(ext, "so") == 0 || strcmp(ext, "dll") == 0 || strcmp(ext, "dylib") == 0) {
                         log_cb(RETRO_LOG_INFO, "Found core: %s\n", name);
-                        /* Add to available cores list */
                         if (strlen(cores_list) + strlen(name) + 2 < cores_list_size) {
                             strlcat(cores_list, "|", cores_list_size);
                             strlcat(cores_list, name, cores_list_size);
@@ -99,7 +97,7 @@ static void append_choice(char *dst, size_t dst_size, const char *choice)
    }
 }
 
-void load_path_patterns(char* patterns_list, size_t patterns_list_size)
+void hook_load_path_patterns(char* patterns_list, size_t patterns_list_size)
 {
    if (!patterns_list || patterns_list_size == 0) return;
 
@@ -111,8 +109,9 @@ void load_path_patterns(char* patterns_list, size_t patterns_list_size)
    }
 
    char patterns_path[4096];
-   snprintf(patterns_path, sizeof(patterns_path), "%s%shook%spath_patterns.txt",
-            sysdir, PATH_DEFAULT_SLASH(), PATH_DEFAULT_SLASH());
+   char hook_dir[MAX_PATH_SIZE];
+   fill_pathname_join(hook_dir, sysdir, "hook", sizeof(hook_dir));
+   fill_pathname_join(patterns_path, hook_dir, "path_patterns.txt", sizeof(patterns_path));
 
    RFILE *f = filestream_open(patterns_path, RETRO_VFS_FILE_ACCESS_READ, RETRO_VFS_FILE_ACCESS_HINT_NONE);
    if (!f) {

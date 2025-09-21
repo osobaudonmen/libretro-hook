@@ -1,6 +1,13 @@
 #ifndef HOOK_CONSTANTS_H
 #define HOOK_CONSTANTS_H
 
+/* Path separator */
+#ifdef _WIN32
+#define HOOK_PATH_SEPARATOR "\\"
+#else
+#define HOOK_PATH_SEPARATOR "/"
+#endif
+
 /* Video constants */
 #define VIDEO_WIDTH 256
 #define VIDEO_HEIGHT 192

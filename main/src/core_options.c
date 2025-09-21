@@ -9,15 +9,15 @@
 static char available_cores_list[MAX_CORES_LIST_SIZE] = "none";
 static char available_patterns_list[MAX_PATTERNS_LIST_SIZE] = "";
 
-void init_core_options(void)
+void hook_init_core_options(void)
 {
    /* Ensure patterns list has defaults if empty */
    if (available_patterns_list[0] == '\0')
       strlcpy(available_patterns_list, DEFAULT_PATH_PATTERNS, sizeof(available_patterns_list));
 
    /* Discover available cores and build selection list */
-   discover_available_cores(available_cores_list, sizeof(available_cores_list));
-   load_path_patterns(available_patterns_list, sizeof(available_patterns_list));
+   hook_discover_available_cores(available_cores_list, sizeof(available_cores_list));
+   hook_load_path_patterns(available_patterns_list, sizeof(available_patterns_list));
 
    /* Create core option variables with discovered cores */
    static struct retro_variable vars[21]; /* 10 pairs + 1 NULL terminator */
@@ -40,14 +40,13 @@ void init_core_options(void)
        vars[i * 2 + 1].value = core_desc[i];
    }
 
-   /* NULL terminator */
    vars[20].key = NULL;
    vars[20].value = NULL;
 
    environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void*)vars);
 }
 
-void check_variables(void)
+void hook_check_variables(void)
 {
    log_cb(RETRO_LOG_INFO, "Checking variables...\n");
 
