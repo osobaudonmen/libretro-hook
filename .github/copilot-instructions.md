@@ -21,6 +21,15 @@
 - 自明なコメントは記述しないでください。
 - ファイル名、定数名、変数名、関数名などは一貫性を持たせてください。
 
+## 設計
+
+- 本コアはlibretroコアとして実装されており、RetroArchなどのlibretroフロントエンドからロードされます。
+- 本コアはROMがロードされた際に、`before_load.sh`または`before_load.bat`を実行します。
+- `before_load.sh`または`before_load.bat`では、ゲーム開始前に設定の変更など任意の処理を追加できます。
+- `before_load.sh`または`before_load.bat`の標準出力で、使用するコアファイル名を`<core:mame_libretro.so>`のように出力すると、そのコアで選択したROMを`retroarch`コマンドを子プロセスで起動します。
+- `retroarch`コマンドを子プロセスで起動を起動後は`exit(0)`で終了します。
+- `<core:mame_libretro.so>`が出力されない場合は、ゲーム画面にスクリプトに渡した引数と標準出力と標準エラーが表示されます。
+
 ## ツール
 
 - ndk-build : PATHが通っていない場合は`/opt/android-ndk-{VER}/ndk-build`を使用してください。

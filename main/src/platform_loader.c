@@ -65,7 +65,7 @@ void platform_run_script(const char *script_path, const char *core_path, const c
             close(pipefd[0]);
             dup2(pipefd[1], STDOUT_FILENO);
             close(pipefd[1]);
-            execl(script_path, script_path, system_dir, core_path, rom_path, (char *)NULL);
+            execl(script_path, script_path, system_dir, rom_path, (char *)NULL);
             _exit(127);
         } else if (pid > 0) {
             close(pipefd[1]);
@@ -123,7 +123,7 @@ void platform_run_script(const char *script_path, const char *core_path, const c
         }
 
         char command[MAX_COMMAND_SIZE];
-        snprintf(command, sizeof(command), "\"%s\" \"%s\" \"%s\" \"%s\"", script_path, system_dir, core_path, rom_path);
+        snprintf(command, sizeof(command), "\"%s\" \"%s\" \"%s\"", script_path, system_dir, rom_path);
         STARTUPINFOA si;
         PROCESS_INFORMATION pi;
         ZeroMemory(&si, sizeof(si));
@@ -195,7 +195,7 @@ void platform_run_script(const char *script_path, const char *core_path, const c
         }
 
         char command[MAX_COMMAND_SIZE];
-        snprintf(command, sizeof(command), "%s '%s' '%s' '%s'", script_path, system_dir, core_path, rom_path);
+        snprintf(command, sizeof(command), "%s '%s' '%s'", script_path, system_dir, rom_path);
         FILE *fp = popen(command, "r");
         if (fp) {
             char buffer[1024];
