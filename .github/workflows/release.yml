@@ -89,8 +89,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: build-${{ github.run_number }}-${{ github.sha }}
-        name: Libretro Hook - Build #${{ github.run_number }}
+        tag_name: ${{ github.run_number }}-${{ github.sha }}
+        name: Auto Build - ${{ github.run_number }} (${{ github.event.head_commit.timestamp }})
         body: |
           **Libretro Hook - Release ${{ github.ref_name }}**
 
@@ -127,10 +127,10 @@ jobs:
       run: |
         # Keep only the latest 5 releases to avoid clutter
         echo "Cleaning up old releases (keeping latest 5)..."
-        releases=$(gh release list --limit 50 --json tagName,createdAt --jq '.[] | select(.tagName | startswith("build-")) | .tagName' | tail -n +6)
+        releases=$(gh release list --limit 50 --json tagName,createdAt --jq 'sort_by(.createdAt) | reverse | .[5:] | .[] | .tagName')
 
         for tag in $releases; do
-          if [ -n "$tag" ] && [ "$tag" != "build-${{ github.run_number }}-${{ github.sha }}" ]; then
+          if [ -n "$tag" ] && [ "$tag" != "${{ github.run_number }}-${{ github.sha }}" ]; then
             echo "Deleting release: $tag"
             gh release delete "$tag" --yes --cleanup-tag || echo "Failed to delete $tag (might not exist)"
           fi
