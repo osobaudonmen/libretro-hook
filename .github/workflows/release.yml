@@ -45,26 +45,6 @@ jobs:
         # Check if the DLL is in the generated directory
         cp ../generated/wincross64/hook_libretro.dll ../../dist/windows-x64/cores/ || true
 
-    - name: Setup Android NDK
-      uses: nttld/setup-ndk@v1
-      with:
-        ndk-version: r27c
-
-    - name: Build Android cores
-      working-directory: main/build
-      run: |
-        cd jni
-        $ANDROID_NDK_HOME/ndk-build clean || true
-        $ANDROID_NDK_HOME/ndk-build APP_ABI="armeabi-v7a arm64-v8a" -j$(nproc)
-        cd ../../..
-
-        # Create Android distribution directories
-        mkdir -p "dist/android-armeabi-v7a/cores"
-        cp "main/build/libs/armeabi-v7a/libhook.so" "dist/android-armeabi-v7a/cores/${{ env.CORE_NAME }}.so"
-
-        mkdir -p "dist/android-arm64-v8a/cores"
-        cp "main/build/libs/arm64-v8a/libhook.so" "dist/android-arm64-v8a/cores/${{ env.CORE_NAME }}.so"
-
     - name: Copy system files and documentation
       run: |
         # Copy system files to all platform directories
@@ -122,8 +102,6 @@ jobs:
           🎯 **Supported Platforms:**
           - Linux x64 (`${{ env.CORE_NAME }}-linux-x64.zip`)
           - Windows x64 (`${{ env.CORE_NAME }}-windows-x64.zip`)
-          - Android ARM v7a (`${{ env.CORE_NAME }}-android-armeabi-v7a.zip`)
-          - Android ARM64 v8a (`${{ env.CORE_NAME }}-android-arm64-v8a.zip`)
 
           📦 Each archive contains:
           - Core library (`cores/hook_libretro.so` or `.dll`)
