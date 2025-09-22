@@ -8,7 +8,7 @@
 - 生成時に`release/`は、一旦クリアしてください
 - Linux, Windows, Androidのコアファイルはrelease向けでソースを再ビルドしてください
 - `dist/release/cores/`以下にプラットフォーム別のディレクトリを作成し、各プラットフォーム用のバイナリを配置してください
-- `dist/info/`をコアのメタ情報として含めてください
+- `main/info/`をコアのメタ情報として含めてください
 - `dist/system/hook/`にコアから呼び出すスクリプト（`main/scripts/before_load.*`）をコピーしてください。
 
 ## `system/hook/`について

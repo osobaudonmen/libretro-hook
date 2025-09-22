@@ -6,7 +6,7 @@ BUILD_DIR="$ROOT_DIR/main/build"
 DIST_DIR="$ROOT_DIR/dist"
 REL_DIR="$DIST_DIR/release"
 CORE_DIR="$REL_DIR/cores"
-INFO_DIR="$DIST_DIR/info"
+INFO_DIR="$ROOT_DIR/main/info"
 SCRIPTS_DIR="$ROOT_DIR/main/scripts"
 
 # Clear release directory
