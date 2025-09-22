@@ -84,12 +84,16 @@ jobs:
           fi
         done
 
+    - name: Generate safe timestamp
+      id: timestamp
+      run: echo "value=$(date -d '${{ github.event.head_commit.timestamp }}' '+%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+
     - name: Create release
       uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: build-${{ github.event.head_commit.timestamp }}-${{ github.run_number }}
+        tag_name: build-${{ github.run_id }}
         name: Auto Build - ${{ github.run_number }} (${{ github.event.head_commit.timestamp }})
         body: |
           **Libretro Hook - Release ${{ github.ref_name }}**
@@ -130,7 +134,7 @@ jobs:
         releases=$(gh release list --limit 50 --json tagName,createdAt --jq '.[] | select(.tagName | startswith("build-")) | sort_by(.createdAt) | reverse | .[5:] | .tagName')
 
         for tag in $releases; do
-          if [ -n "$tag" ] && [ "$tag" != "build-${{ github.event.head_commit.timestamp }}-${{ github.run_number }}" ]; then
+          if [ -n "$tag" ] && [ "$tag" != "build-${{ github.run_id }}" ]; then
             echo "Deleting release: $tag"
             gh release delete "$tag" --yes --cleanup-tag || echo "Failed to delete $tag (might not exist)"
           fi
