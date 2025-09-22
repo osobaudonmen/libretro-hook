@@ -11,6 +11,9 @@ env:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -103,6 +106,8 @@ jobs:
 
     - name: Create release
       uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: build-${{ github.run_number }}-${{ github.sha }}
         name: Libretro Hook - Build #${{ github.run_number }}
