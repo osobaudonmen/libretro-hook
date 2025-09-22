@@ -1,4 +1,3 @@
-
 # Libretro Hook
 
 [English](README.md)
@@ -11,46 +10,7 @@
 
 ## ダウンロード
 
-GitHub Actions の該当ワークフロー実行ページから `libretro-hook-release-*` をダウンロードしてください。
-
-## インストール
-
-ダウンロードしたアーカイブを解凍し、以下のように RetroArch のディレクトリへ配置してください。
-
-Windows の例
-
-```
-<RETROARCH_HOME>\cores\hook_libretro.dll
-<RETROARCH_HOME>\info\hook_libretro.info
-<RETROARCH_HOME>\system\hook\before_load.bat
-```
-
-Linux の例
-
-```
-<RETROARCH_HOME>/cores/hook_libretro.so
-<RETROARCH_HOME>/info/hook_libretro.info
-<RETROARCH_HOME>/system/hook/before_load.sh
-```
-
-配置後は RetroArch を再起動するか、コアを再読み込みして動作を確認してください。
-
-## ビルド方法
-
-ビルドスクリプトは `main/build` にあります。代表的なターゲット:
-# Libretro Hook
-
-[English](README.md)
-
-## 概要
-
-`libretro-hook` は、ゲーム開始前に任意のスクリプトを実行できる RetroArch 用のコアです。
-付属のサンプルスクリプトは、MAME/FBNeo 用の RetroArch 麻雀オーバーレイ
-([retroarch_mahjong_overlays](https://github.com/osobaudonmen/retroarch_mahjong_overlays)) を自動で読み込みます。
-
-## ダウンロード
-
-GitHub Actions の該当ワークフロー実行ページから `libretro-hook-release-*` をダウンロードしてください。
+GitHubのReleaseページからファイルをダウンロードしてください。
 
 ## インストール
 

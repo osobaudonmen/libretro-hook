@@ -1,4 +1,3 @@
-
 # Libretro Hook
 
 [日本語](README.ja.md)
@@ -10,7 +9,7 @@ The included sample scripts automatically load RetroArch mahjong overlays for MA
 
 ## Downloads
 
-Download `libretro-hook-release-*` from the corresponding GitHub Actions workflow run page.
+Download the archive from the repository's GitHub Releases page.
 
 ## Installation
 
