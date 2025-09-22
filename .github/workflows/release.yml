@@ -1,121 +1,154 @@
-name: Build and Package Release (Linux + Windows)
+name: Libretro Hook - Build and Release
 
 on:
   push:
-    tags:
-      - 'v*'
     branches:
       - master
-  workflow_dispatch: {}
+
+env:
+  CORE_NAME: hook_libretro
 
 jobs:
-  build-matrix:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-          fetch-depth: 0
-
-      - name: Setup build dependencies (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential git
-
-      - name: Setup build dependencies (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          choco install make -y
-          # Ensure compiler is available on Windows runners (msys2 or visual studio can be used)
-
-      - name: Build (Linux)
-        if: runner.os == 'Linux'
-        working-directory: main/build
-        run: |
-          make clean platform=unix || true
-          make linux
-
-      - name: Build (Windows)
-        if: runner.os == 'Windows'
-        working-directory: main/build
-        run: |
-          make clean platform=wincross64 || true
-          make windows64
-
-      - name: Collect artifacts (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          mkdir -p dist/release/cores
-          cp main/generated/unix/hook_libretro.so dist/release/cores/ || true
-          mkdir -p dist/release/system/hook
-          cp -r main/scripts/* dist/release/system/hook/ || true
-          mkdir -p dist/release/info
-          cp -r dist/info/hook_libretro.info dist/release/info/ || true
-
-      - name: Create ZIP archive (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y zip
-          rm -f dist/libretro-hook-release-linux.zip || true
-          zip -r dist/libretro-hook-release-linux.zip dist/release
-
-      - name: Upload ZIP artifact (Linux)
-        if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v4
-        with:
-          name: libretro-hook-release-linux
-          path: dist/libretro-hook-release-linux.zip
-
-      - name: Collect artifacts (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path dist\release\cores | Out-Null
-          Copy-Item -Path main\build\hook_libretro.dll -Destination dist\release\cores\ -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Force -Path dist\release\system\hook | Out-Null
-          Copy-Item -Path main\scripts\* -Destination dist\release\system\hook\ -Recurse -ErrorAction SilentlyContinue
-          New-Item -ItemType Directory -Force -Path dist\release\info | Out-Null
-          Copy-Item -Path dist\info\hook_libretro.info -Destination dist\release\info\ -Recurse -ErrorAction SilentlyContinue
-
-      - name: Create ZIP archive (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Remove-Item -Path dist\libretro-hook-release-windows.zip -ErrorAction SilentlyContinue
-          Compress-Archive -Path dist\release\* -DestinationPath dist\libretro-hook-release-windows.zip -Force
-
-      - name: Upload ZIP artifact (Windows)
-        if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
-        with:
-          name: libretro-hook-release-windows
-          path: dist/libretro-hook-release-windows.zip
-
-  create-release:
-    needs: build-matrix
+  build-and-release:
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: downloaded
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: true
+        fetch-depth: 0
 
-      - name: Gather ZIPs into dist/
-        run: |
-          mkdir -p dist
-          find downloaded -type f -name "libretro-hook-release-*.zip" -exec cp {} dist/ \; || true
+    - name: Setup build environment
+      run: |
+        sudo apt update
+        sudo apt install -y mingw-w64 zip
+        mkdir -p dist
 
-      - name: Create GitHub Release and upload assets
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{ github.ref_name }}
-          files: dist/libretro-hook-release-*.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build Linux x64
+      working-directory: main/build
+      run: |
+        make clean || true
+        make linux
+        mkdir -p ../../dist/linux-x64/cores
+        cp ../generated/unix/hook_libretro.so ../../dist/linux-x64/cores/
+
+    - name: Build Windows x64
+      working-directory: main/build
+      run: |
+        make clean || true
+        make windows64
+        mkdir -p ../../dist/windows-x64/cores
+        cp hook_libretro.dll ../../dist/windows-x64/cores/ || echo "Windows DLL not found, checking alternative paths"
+        # Check if the DLL is in the generated directory
+        cp ../generated/wincross64/hook_libretro.dll ../../dist/windows-x64/cores/ || true
+
+    - name: Setup Android NDK
+      uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: r27c
+
+    - name: Build Android cores
+      working-directory: main/build
+      run: |
+        cd jni
+        $ANDROID_NDK_HOME/ndk-build clean || true
+        $ANDROID_NDK_HOME/ndk-build APP_ABI="armeabi-v7a arm64-v8a" -j$(nproc)
+        cd ../../..
+
+        # Create Android distribution directories
+        mkdir -p "dist/android-armeabi-v7a/cores"
+        cp "main/build/libs/armeabi-v7a/libhook.so" "dist/android-armeabi-v7a/cores/${{ env.CORE_NAME }}.so"
+
+        mkdir -p "dist/android-arm64-v8a/cores"
+        cp "main/build/libs/arm64-v8a/libhook.so" "dist/android-arm64-v8a/cores/${{ env.CORE_NAME }}.so"
+
+    - name: Copy system files and documentation
+      run: |
+        # Copy system files to all platform directories
+        for dir in dist/*/; do
+          if [ -d "$dir" ]; then
+            mkdir -p "${dir}system/hook"
+            cp -r main/scripts/* "${dir}system/hook/"
+            # Copy info files
+            mkdir -p "${dir}info"
+            cp dist/info/hook_libretro.info "${dir}info/" 2>/dev/null || true
+            # Copy documentation files
+            cp README.md README.ja.md LICENSE "${dir}" 2>/dev/null || true
+          fi
+        done
+
+    - name: Create distribution archives
+      run: |
+        cd dist
+        for dir in */; do
+          if [ -d "$dir" ]; then
+            platform=$(basename "$dir")
+            zip -r "${{ env.CORE_NAME }}-${platform}.zip" "$dir"
+          fi
+        done
+
+    - name: Verify build artifacts
+      run: |
+        echo "Build verification:"
+        ls -la dist/
+        echo ""
+        echo "Archive contents:"
+        for archive in dist/*.zip; do
+          if [ -f "$archive" ]; then
+            echo "=== $(basename "$archive") ==="
+            unzip -l "$archive" | head -10
+            echo ""
+          fi
+        done
+
+    - name: Create release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: build-${{ github.run_number }}-${{ github.sha }}
+        name: Libretro Hook - Build #${{ github.run_number }}
+        body: |
+          **Libretro Hook - Release ${{ github.ref_name }}**
+
+          📋 **Build Information:**
+          - Commit: `${{ github.sha }}`
+          - Branch: `${{ github.ref_name }}`
+          - Build Date: `${{ github.event.head_commit.timestamp }}`
+
+          🎯 **Supported Platforms:**
+          - Linux x64 (`${{ env.CORE_NAME }}-linux-x64.zip`)
+          - Windows x64 (`${{ env.CORE_NAME }}-windows-x64.zip`)
+          - Android ARM v7a (`${{ env.CORE_NAME }}-android-armeabi-v7a.zip`)
+          - Android ARM64 v8a (`${{ env.CORE_NAME }}-android-arm64-v8a.zip`)
+
+          📦 Each archive contains:
+          - Core library (`cores/hook_libretro.so` or `.dll`)
+          - Hook scripts (`system/hook/before_load.sh` and `before_load.bat`)
+          - Core information file (`info/hook_libretro.info`)
+          - Documentation (`README.md`, `README.ja.md`, `LICENSE`)
+
+          🚀 **Installation:**
+          1. Extract the archive for your platform
+          2. Copy `cores/hook_libretro.*` to your RetroArch cores directory
+          3. Copy `system/hook/` directory to your RetroArch system directory
+          4. Copy `info/hook_libretro.info` to your RetroArch info directory
+          5. The core will be available as "Hook" in RetroArch
+        files: dist/${{ env.CORE_NAME }}-*.zip
+        draft: false
+        prerelease: false
+        fail_on_unmatched_files: true
+
+    - name: Cleanup old releases
+      continue-on-error: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # Keep only the latest 5 releases to avoid clutter
+        echo "Cleaning up old releases (keeping latest 5)..."
+        releases=$(gh release list --limit 50 --json tagName,createdAt --jq '.[] | select(.tagName | startswith("build-")) | .tagName' | tail -n +6)
+
+        for tag in $releases; do
+          if [ -n "$tag" ] && [ "$tag" != "build-${{ github.run_number }}-${{ github.sha }}" ]; then
+            echo "Deleting release: $tag"
+            gh release delete "$tag" --yes --cleanup-tag || echo "Failed to delete $tag (might not exist)"
+          fi
+        done
