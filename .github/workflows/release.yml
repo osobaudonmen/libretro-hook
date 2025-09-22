@@ -54,7 +54,7 @@ jobs:
             cp -r main/scripts/* "${dir}system/hook/"
             # Copy info files
             mkdir -p "${dir}info"
-            cp dist/info/hook_libretro.info "${dir}info/" 2>/dev/null || true
+            cp main/info/hook_libretro.info "${dir}info/" 2>/dev/null || true
             # Copy documentation files
             cp README.md README.ja.md LICENSE "${dir}" 2>/dev/null || true
           fi
@@ -64,7 +64,7 @@ jobs:
       run: |
         cd dist
         for dir in */; do
-          if [ -d "$dir" ] && [ "$dir" != "info/" ]; then
+          if [ -d "$dir" ]; then
             platform=$(basename "$dir")
             zip -r "${{ env.CORE_NAME }}-${platform}.zip" "$dir"
           fi

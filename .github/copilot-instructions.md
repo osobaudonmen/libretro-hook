@@ -9,7 +9,7 @@
 
 - libretro-hookは、libretroコアの実装であり、他のlibretroコアをロードして実行するためのローダー機能を提供します。
 - Windows(wincross64)、Linux(unix)、Android(arm64-v8a、armeabi-v7a)に向けたビルドをサポートしています。
-- 現状Androidは子プロセスやインテントを用いたRetroArchの起動ができないため正常に動作しません。
+- 現状Androidは子プロセスやインテントを用いたRetroArchの起動ができないため正常に動作しません。配布用のバイナリやアセットやダウンロードからは除外してください。
 
 ## 開発指針
 
