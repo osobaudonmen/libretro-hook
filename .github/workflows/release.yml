@@ -131,7 +131,7 @@ jobs:
       run: |
         # Keep only the latest 5 releases to avoid clutter
         echo "Cleaning up old releases (keeping latest 5)..."
-        releases=$(gh release list --limit 50 --json tagName,createdAt --jq '.[] | select(.tagName | startswith("build-")) | sort_by(.createdAt) | reverse | .[5:] | .tagName')
+        releases=$(gh release list --limit 50 --json tagName,createdAt --jq 'map(select(.tagName | startswith("build-"))) | sort_by(.createdAt) | reverse | .[5:] | map(.tagName) | .[]')
 
         for tag in $releases; do
           if [ -n "$tag" ] && [ "$tag" != "build-${{ github.run_id }}" ]; then
