@@ -53,11 +53,15 @@ mkdir -p "$RETROARCH_CONFIG_DIR/$CORE_NAME"
 CONFIG_FILE="$RETROARCH_CONFIG_DIR/$CORE_NAME/${GAME_NAME}.cfg"
 OVERLAY_PATH="$RETROARCH_OVERLAY_DIR/mahjong/mahjong_${GAME_NAME}.cfg"
 
-cat > "$CONFIG_FILE" << EOF
+# Only create config file if it doesn't already exist
+if [ ! -f "$CONFIG_FILE" ]; then
+    cat > "$CONFIG_FILE" << EOF
 # Auto-generated overlay configuration for $GAME_NAME
 input_overlay = "$OVERLAY_PATH"
 input_overlay_enable = "true"
 EOF
+    echo "Created config file: $CONFIG_FILE"
+fi
 
 # Output core information for libretro-hook
 echo "<core:$CORE_FILE>"

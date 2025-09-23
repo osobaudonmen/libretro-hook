@@ -76,9 +76,13 @@ set "CONFIG_FILE=!RETROARCH_CONFIG_DIR!\!CORE_NAME!\!GAME_NAME!.cfg"
 REM Convert to absolute path for overlay (absolute path)
 for %%i in ("!RETROARCH_OVERLAY_DIR!\mahjong\mahjong_!GAME_NAME!.cfg") do set OVERLAY_PATH=%%~fi
 
-echo # Auto-generated overlay configuration for !GAME_NAME! > "!CONFIG_FILE!"
-echo input_overlay = "!OVERLAY_PATH!" >> "!CONFIG_FILE!"
-echo input_overlay_enable = "true" >> "!CONFIG_FILE!"
+REM Only create config file if it doesn't already exist
+if not exist "!CONFIG_FILE!" (
+    echo # Auto-generated overlay configuration for !GAME_NAME! > "!CONFIG_FILE!"
+    echo input_overlay = "!OVERLAY_PATH!" >> "!CONFIG_FILE!"
+    echo input_overlay_enable = "true" >> "!CONFIG_FILE!"
+    echo Created config file: !CONFIG_FILE!
+)
 
 REM Output core information for libretro-hook
 echo ^<core:%CORE_FILE%^>
