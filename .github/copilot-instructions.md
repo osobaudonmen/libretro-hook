@@ -105,9 +105,7 @@
   - `RETROARCH_OVERLAY_DIR`はオーバーレイのベースディレクトリになります。
     - ゲーム別のオーバーレイパスは`RETROARCH_OVERLAY_DIR/mahjong/mahjong_<ゲーム名>.cfg`（今回は麻雀用）になります。
 
-### テストについて
-
-#### 概要
+### `before_load.sh`のテスト
 
 - 対象スクリプトは`before_load.sh`と`before_load.bat`です。
 - テストは`/tmp/`の下に、RetroArchのディレクトリ構造を模倣してテスト用ディレクトリを作成して実行してください。
@@ -115,7 +113,7 @@
 - テストして問題がある場合は修正してください。
 - テストが終わったらテスト用のディレクトリを削除してください。ただし、問題の解析に利用できそうなファイルがあれば削除せずに残してください。
 
-#### 確認するポイント
+確認するポイントを次に列挙する。
 
 - `before_load.sh /home/user/.config/retroarch/system /mnt/d/files/roms/rebuild/fbneo/1942.7z`のように、第一引数はRetroArchのsystemディレクトリ、第二引数はROMパスの絶対パスで渡される。
 - スクリプトは最後に`<core:fbneo_libretro.so>`のような形式でコアファイルを出力する必要がある。
