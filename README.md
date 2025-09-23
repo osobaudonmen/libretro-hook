@@ -51,4 +51,40 @@ Artifacts are created under `main/generated/`.
 3. If the script outputs a core name in the format `<core:mame_libretro.so>` to stdout, the specified core will be launched with the selected ROM.
 4. If the above format is not output, the script's stdout and stderr are displayed on the game screen.
 
+## About Sample Scripts
+
+The included sample scripts (`before_load.sh` / `before_load.bat`) provide functionality to automatically apply mahjong game overlays for MAME/FBNeo.
+
+### Main Features
+
+- Automatically detect the core (MAME or FBNeo) to use based on ROM path
+- Automatically generate dedicated overlay configuration files for game names
+- Do not overwrite existing configuration files (to protect settings)
+
+### Core Detection Method
+
+The script determines which core to use based on strings contained in the ROM file path:
+
+- If path contains `/mame/` or `\mame\` → MAME core
+- If path contains `/fbneo/` or `\fbneo\` → FBNeo core
+- If cannot be determined → Display error message
+
+### Configuration File Placement
+
+Generated game-specific configuration files:
+```
+<RetroArch config directory>/<core name>/<game name>.cfg
+```
+
+Referenced overlay files:
+```
+<RetroArch home directory>/overlays/mahjong/mahjong_<game name>.cfg
+```
+
+### Notes
+
+- Overlay files (`mahjong_*.cfg`) must be obtained separately from [retroarch_mahjong_overlays](https://github.com/osobaudonmen/retroarch_mahjong_overlays)
+- Directory paths can be hardcoded at the beginning of the script (adjust according to your environment)
+- Existing game-specific configuration files will not be overwritten (to protect manual settings)
+
 
